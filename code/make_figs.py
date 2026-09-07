@@ -188,6 +188,86 @@ def compressed_interval(P, c, seed=31):
                 missed=float(((~act) & (th > 0)).mean()), wrong=float((act & ~suc).mean()), steps=1.0)
 
 
+def _episode_arrays(P, device, c, p):
+    """Per-episode outcome arrays for one person under one device, seed 31, N episodes
+    (common random numbers across devices and persons)."""
+    th, X, vd, suc = iv._streams(31, N)
+    ones = np.ones(N, bool)
+    up0, lo0 = iv.thresholds_for(P)
+    if device == "own":
+        d = iv._run_core(th, X, suc, iv.SIGMA, P, up0, lo0, up0, lo0, ones)
+    elif device == "interval only":
+        d = iv._run_core(th, X, suc, iv.SIGMA, P, up0, lo0, up0, lo0, ones, k_wait=3)
+    elif device in ("procedure", "relief only"):
+        go = vd.random(N) < p
+        ug, lg = iv.thresholds_for(P, relief_go=0.9)
+        uw, lw = iv.thresholds_for(P, relief_wait=0.9)
+        d = iv._run_core(th, X, suc, iv.SIGMA, P, ug, lg, uw, lw, go, k_wait=(3 if device == "procedure" else 0))
+    elif device == "agent-timed prompt":
+        agent = iv.Person(gamma=2.0, label="agent")
+        up_a, lo_a = iv.thresholds_for(agent)
+        L = np.zeros(N); done = np.zeros(N, bool); acted = np.zeros(N, bool); steps = np.zeros(N, int)
+        for t in range(1, iv.H + 1):
+            live = ~done
+            x = th + iv.SIGMA * X[:, t - 1]
+            L = np.where(live, L + 2.0 * x / iv.SIGMA ** 2, L)
+            steps += live
+            la = 2.0 * L
+            stop = live & ((la >= up_a[t]) | (la <= lo_a[t]) | (t == iv.H))
+            lp = P.gamma * L
+            ps = iv.p_success(iv.sigmoid(lp))
+            act = ps * iv.R_OK + (1 - ps) * (iv.R_BAD - P.r_blame) > 0
+            acted |= stop & act
+            done |= stop
+        d = dict(pay=np.where(acted, np.where(suc, iv.R_OK, iv.R_BAD), 0.0) + iv.C * steps,
+                 avoidable=acted & (th < 0), missed=(~acted) & (th > 0))
+    elif device == "compressed interval":
+        x = th + iv.SIGMA * X[:, 0]
+        Lp = 2 * x / iv.SIGMA ** 2 * P.gamma
+        ps = iv.p_success(iv.sigmoid(Lp))
+        act = ps * iv.R_OK + (1 - ps) * (iv.R_BAD - P.r_blame) > 0
+        d = dict(pay=np.where(act, np.where(suc, iv.R_OK, iv.R_BAD), 0.0) + c, avoidable=act & (th < 0), missed=(~act) & (th > 0))
+    return dict(pay=d["pay"].astype(float), avoidable=d["avoidable"].astype(float), missed=d["missed"].astype(float))
+
+
+def table1_paired(p=0.25, suffix=""):
+    """Paired statistics for Table 2 (main text): 95% half-widths of the population cells
+    computed from the per-episode population average (the four persons share random
+    streams, so they are not independent samples), and paired differences against 'own
+    judgement' per person and for the population.  Writes table1_paired{suffix}.csv."""
+    rows = []
+    devices = ("own", "procedure", "interval only", "relief only", "agent-timed prompt", "compressed interval")
+    for c in (-1.0, -0.5):
+        old_c = iv.C; iv.C = c; iv.dp_thresholds.cache_clear()
+        arrs = {(P.label, dev): _episode_arrays(P, dev, c, p) for P in iv.PEOPLE for dev in devices}
+        for dev in devices:
+            pop = {k: np.mean([arrs[(P.label, dev)][k] for P in iv.PEOPLE], axis=0) for k in ("pay", "avoidable", "missed")}
+            base = {k: np.mean([arrs[(P.label, "own")][k] for P in iv.PEOPLE], axis=0) for k in ("pay", "avoidable", "missed")}
+            row = dict(step_cost=c, person="population (equal mix)", device=dev)
+            for k in ("pay", "avoidable", "missed"):
+                row[f"{k}_mean"] = float(pop[k].mean())
+                row[f"{k}_halfwidth95"] = float(1.96 * pop[k].std(ddof=1) / np.sqrt(N))
+                diff = pop[k] - base[k]
+                row[f"{k}_diff_vs_own"] = float(diff.mean())
+                row[f"{k}_diff_halfwidth95"] = float(1.96 * diff.std(ddof=1) / np.sqrt(N))
+            rows.append(row)
+            for P in iv.PEOPLE:
+                a, b = arrs[(P.label, dev)], arrs[(P.label, "own")]
+                row = dict(step_cost=c, person=P.label, device=dev)
+                for k in ("pay", "avoidable", "missed"):
+                    diff = a[k] - b[k]
+                    row[f"{k}_mean"] = float(a[k].mean())
+                    row[f"{k}_halfwidth95"] = float(1.96 * a[k].std(ddof=1) / np.sqrt(N))
+                    row[f"{k}_diff_vs_own"] = float(diff.mean())
+                    row[f"{k}_diff_halfwidth95"] = float(1.96 * diff.std(ddof=1) / np.sqrt(N))
+                rows.append(row)
+        iv.C = old_c; iv.dp_thresholds.cache_clear()
+    write_csv(os.path.join(RES, f"table1_paired{suffix}.csv"), rows)
+    for r in rows:
+        if r["person"].startswith("population") and r["step_cost"] == -0.5:
+            print(f"  paired C=-0.5 {r['device']:>19}: payoff {r['pay_mean']:+.3f} ±{r['pay_halfwidth95']:.3f}  diff vs own {r['pay_diff_vs_own']:+.3f} ±{r['pay_diff_halfwidth95']:.3f} | avoidable ±{100*r['avoidable_halfwidth95']:.3f}pp missed ±{100*r['missed_halfwidth95']:.3f}pp")
+
+
 def table1(p=0.25, suffix=""):
     """Population of the four kinds of person in equal shares.  p = probability that the
     verdict says "go" (main text 0.25: one line in four changes under either casting
@@ -245,6 +325,7 @@ def table1(p=0.25, suffix=""):
                          steps=float(np.mean([r.steps for r in res]))))
         iv.C = old_c; iv.dp_thresholds.cache_clear()
     write_csv(os.path.join(RES, f"table1{suffix}.csv"), rows)
+    table1_paired(p, suffix)
     print(f"table1 p={p} (population, equal mix):")
     for c in (-1.0, -0.5):
         for col in ("act at once", "never act", "own", "procedure", "interval only", "relief only", "agent-timed prompt", "compressed interval"):

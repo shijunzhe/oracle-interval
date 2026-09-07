@@ -53,7 +53,8 @@ def panel(ax, letter, title):
 
 def save(fig, stem):
     for ext, dpi in (("png", 300), ("pdf", None)):
-        fig.savefig(os.path.join(FIGS, f"{stem}.{ext}"), dpi=dpi, bbox_inches="tight", pad_inches=0.04)
+        fig.savefig(os.path.join(FIGS, f"{stem}.{ext}"), dpi=dpi, bbox_inches="tight", pad_inches=0.04,
+                    metadata={"CreationDate": None} if ext == "pdf" else None)
     plt.close(fig)
 
 

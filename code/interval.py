@@ -6,7 +6,8 @@ World.  A binary latent state theta in {+1,-1} (equiprobable).  Each step brings
 one noisy observation x ~ N(theta, sigma^2).  The action is irreversible.  If
 taken, it succeeds with probability Q when theta=+1 and 1-Q when theta=-1
 (residual risk: even a well-founded action can fail).  Success pays R_OK,
-failure pays R_BAD; not acting pays 0; each step of waiting costs C (<0).
+failure pays R_BAD; not acting pays 0; each step of waiting costs |C| (the
+constant C is stored as a negative payoff, -0.5 in the main text).
 Horizon H.  The person may at any step act, give up, or wait one more step.
 
 Person.  Each person decides by finite-horizon dynamic programming (DP) on the
@@ -35,9 +36,11 @@ Device.
                    and 'wait' otherwise, with the same relief and evidence channel
                    as a random verdict drawn at the same step (verdict_at=k).
                    Supplement only (the AI-agent configuration).
-  self_rule(f)    : the person raises their *own* DP action threshold by the
-                   factor f (perceived units); the quit threshold is unchanged.
-                   Supplement S-E only.
+  self_rule(f)    : the person discounts their own certainty by the factor f:
+                   both of their own DP thresholds are multiplied by f (perceived
+                   units), so they demand f times as much evidence before acting
+                   and before giving up.  Equivalent to reading with gamma/f
+                   against unchanged thresholds.  Supplement S-E only.
   prompt(agent_gamma): an agent that reads evidence with agent_gamma runs the
                    calibrated-cost DP and stops when its own thresholds are
                    crossed; at that step the person must act or give up on the
@@ -133,9 +136,15 @@ def dp_thresholds(gamma, c_anx, r_blame, sigma, r_ok=None, r_bad=None, c=None, h
     return upper, lower, values
 
 
-def thresholds_for(person: Person, sigma=SIGMA, relief_wait=0.0, relief_go=0.0, **kw):
+def thresholds_for(person: Person, sigma=None, relief_wait=0.0, relief_go=0.0, **kw):
+    """DP thresholds for a person.  The module-level payoffs and horizon are passed
+    explicitly so that they enter the lru_cache key: changing iv.C (as make_figs.table1
+    and make_supp.setp do) then cannot return stale thresholds."""
+    sigma = SIGMA if sigma is None else sigma
+    full = dict(r_ok=R_OK, r_bad=R_BAD, c=C, horizon=H, q=Q)
+    full.update(kw)
     return dp_thresholds(person.gamma, person.c_anx * (1.0 - relief_wait),
-                         person.r_blame * (1.0 - relief_go), sigma, **kw)[:2]
+                         person.r_blame * (1.0 - relief_go), sigma, **full)[:2]
 
 
 # ---------------------------------------------------------------- one-step lookahead (robustness table)
@@ -205,6 +214,8 @@ def _run_core(theta, X, success, sigma, person: Person, up_go, lo_go, up_wait, l
     acted = np.zeros(n, bool)
     steps = np.zeros(n, int)
     go = go_mask.copy()
+    if mirror:
+        assert k_wait > verdict_at, "a mirror verdict needs k_wait > verdict_at (no decision before the verdict)"
     have_verdict = verdict_at == 0
     shift = np.where(go, delta, -delta) if have_verdict else np.zeros(n)
     for t in range(1, H + 1):
@@ -223,7 +234,7 @@ def _run_core(theta, X, success, sigma, person: Person, up_go, lo_go, up_wait, l
         if self_rule is not None:
             f = self_rule
             act = lp >= f * up_wait[t]
-            quit_ = lp <= lo_wait[t]
+            quit_ = lp <= f * lo_wait[t]
         else:
             act = lp >= np.where(go, up_go[t], up_wait[t])
             quit_ = lp <= np.where(go, lo_go[t], lo_wait[t])
@@ -257,13 +268,14 @@ def _summarise(d, mask=None):
                   steps=d["steps"][mask].mean())
 
 
-def simulate(person: Person, device="none", n=40_000, sigma=SIGMA, seed=0,
+def simulate(person: Person, device="none", n=40_000, sigma=None, seed=0,
              k=0, p=0.5, theta=0.0, f=1.0, delta=0.0, split=False):
     """Run n episodes.  device in {'none','forced_wait','verdict','oracle','mirror','self_rule'}.
     With split=True and device in ('verdict','oracle','mirror'), also return Results for
     the episodes that received 'go' and 'wait'.  For 'mirror', k is the number of
     observations after which the verdict is formed (decisions start at step k+1); the
     matching random comparison is device='oracle' with the same k and delta."""
+    sigma = SIGMA if sigma is None else sigma
     th, X, vd, suc = _streams(seed, n)
     up0, lo0 = thresholds_for(person, sigma)
     ones = np.ones(n, bool)
@@ -294,11 +306,12 @@ def simulate(person: Person, device="none", n=40_000, sigma=SIGMA, seed=0,
     return _summarise(d)
 
 
-def simulate_prompt(person: Person, agent_gamma=2.0, n=40_000, sigma=SIGMA, seed=0) -> Result:
+def simulate_prompt(person: Person, agent_gamma=2.0, n=40_000, sigma=None, seed=0) -> Result:
     """Agent-timed prompt.  An agent reading evidence with agent_gamma (calibrated costs)
     runs the DP and stops when its own perceived log-odds cross its thresholds.  At that
     step the person must act or give up on the evidence in hand: act iff the perceived
     value of acting, with the person's own gamma and R_blame, is positive.  No waiting."""
+    sigma = SIGMA if sigma is None else sigma
     th, X, _, suc = _streams(seed, n)
     agent = Person(gamma=agent_gamma, label="agent")
     up_a, lo_a = thresholds_for(agent, sigma)
@@ -322,7 +335,8 @@ def simulate_prompt(person: Person, agent_gamma=2.0, n=40_000, sigma=SIGMA, seed
     return _summarise(d)
 
 
-def simulate_lookahead(person: Person, n=40_000, sigma=SIGMA, seed=0) -> Result:
+def simulate_lookahead(person: Person, n=40_000, sigma=None, seed=0) -> Result:
+    sigma = SIGMA if sigma is None else sigma
     th, X, _, suc = _streams(seed, n)
     L = np.zeros(n); done = np.zeros(n, bool); acted = np.zeros(n, bool); steps = np.zeros(n, int)
     for t in range(1, H + 1):

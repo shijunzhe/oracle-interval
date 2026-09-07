@@ -122,26 +122,33 @@ def test_fearful_on_go_acts_only_when_evidence_supports():
 
 # ---------------------------------------------------------------- self rule (S-E)
 def test_self_rule_needs_the_factor_the_person_does_not_know():
-    """raising one's own bar by the factor that restores the calibrated bar in true units
-    brings avoidable catastrophes to the calibrated rate, but leaves early quitting untouched,
-    and the factor grows with gamma"""
+    """discounting one's own certainty by the factor that restores the calibrated bar in
+    true units brings both errors to the calibrated rates; the factor grows with gamma;
+    the calibrated person who applies a discount only loses"""
     rc = iv.simulate(iv.CALIBRATED, "none", n=N)
-    up_cal, _ = iv.thresholds_for(iv.CALIBRATED, iv.SIGMA)
+    up_cal, _ = iv.thresholds_for(iv.CALIBRATED)
     fstars = []
     for g in (1.5, 2.0, 3.0):
         P = iv.Person(gamma=g)
-        up_own, _ = iv.thresholds_for(P, iv.SIGMA)
+        up_own, _ = iv.thresholds_for(P)
         f_star = g * up_cal[1] / up_own[1]
         fstars.append(f_star)
-        own = iv.simulate(P, "none", n=N)
         rs = iv.simulate(P, "self_rule", n=N, f=f_star)
         assert abs(rs.avoidable - rc.avoidable) < 3 * se_diff(rs.avoidable, rc.avoidable)
-        assert rs.missed > own.missed - 3 * se_diff(rs.missed, own.missed)   # quitting unchanged
-        assert rs.missed > 1.5 * rc.missed
+        assert abs(rs.missed - rc.missed) < 3 * se_diff(rs.missed, rc.missed) + 0.004
     assert fstars[0] < fstars[1] < fstars[2]
-    # the calibrated person who raises the bar only loses
     r = iv.simulate(iv.CALIBRATED, "self_rule", n=N, f=1.5)
     assert r.payoff < rc.payoff
+
+
+def test_thresholds_key_on_module_globals():
+    """changing iv.C must not return stale cached thresholds"""
+    up1, _ = iv.thresholds_for(iv.CALIBRATED)
+    old = iv.C
+    iv.C = -1.0
+    up2, _ = iv.thresholds_for(iv.CALIBRATED)
+    iv.C = old
+    assert up2[1] < up1[1]
 
 
 # ---------------------------------------------------------------- evidence channel and mirror (S-G, S-H)

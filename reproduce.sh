@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Reproduces every number and figure in the paper. About ten minutes at the default
+# Reproduces every number and figure in the paper. About half a minute at the default
 # of 100,000 decisions per setting; pass a smaller number for a quick run:  bash reproduce.sh 20000 20000
 set -e
 cd "$(dirname "$0")/code"

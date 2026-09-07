@@ -20,11 +20,11 @@ For a quick check, `python3 code/interval.py` runs the model alone with 40,000 d
 | Path | Contents |
 |---|---|
 | `code/interval.py` | The model: world, four people, devices, dynamic programming, simulation. The docstring at the top explains it in one page. |
-| `code/test_interval.py` | Twenty-one tests of the model's stated properties (for example: the empty verdict changes nothing; full relief brings a person to the calibrated rate and no further; a verdict read as evidence erodes the relief; a mirror read as evidence raises avoidable catastrophes). |
+| `code/test_interval.py` | Twenty-two tests of the model's stated properties (for example: the empty verdict changes nothing; full relief brings a person to the calibrated rate and no further; a verdict read as evidence erodes the relief; a mirror read as evidence raises avoidable catastrophes). |
 | `code/make_figs.py` | Simulations behind Figure 1 (one trajectory), Figure 2 (imposed waiting), Figure 3 (one draw, two directions) and Table 2 (the whole procedure, the agent-timed prompt and the single-observation limit). Writes `results/`. |
 | `code/make_supp.py` | Simulations behind the Supplementary Information: stakes sweep, verdict-probability sweep, θ curve, pressure strength, the self-imposed rule, subjective costs, the verdict read as evidence, the mirror verdict, two faults in one person, robustness. Writes `results/`. |
 | `code/plot_figs.py`, `code/plot_supp.py` | Redraw all figures from `results/*.csv` without rerunning the simulations. Write `figs/` (300 dpi PNG and vector PDF). |
-| `results/` | One CSV per figure or table. |
+| `results/` | One CSV per figure or table. `table1.csv` is the paper's Table 2 (the paper's Table 1 is the list of persons); `table1_paired.csv` holds the per-decision 95% intervals of its population cells and the paired differences against own judgement. Seeds: Fig. 1 rng(3); Fig. 2 seed 11; Fig. 3 seed 23; Table 2 seed 31; S-A 41, S-B 43, S-W 45, S-D 47, S-E 49, S-F 51, S-G/S-H/S-M 23, robustness 53. |
 | `figs/` | The figures as they appear in the paper. |
 
 ## The model in one paragraph
@@ -37,17 +37,17 @@ The world is in one of two states, good or bad, equally likely at the start. Eac
 |---|---|
 | Two imposed steps cut the overconfident person's avoidable catastrophes from 1.6% to 1.0%, three steps to 0.7%; missed opportunities fall at the same time; the calibrated person pays for every step | `results/fig2.csv`, Figure 2 |
 | One random verdict brings the anxious person who drew "wait" from 7.4% to 2.2% missed opportunities and the fearful person who drew "go" from 3.4% to 2.0%, against 1.8% for the calibrated person; a verdict with no relief changes nothing | `results/fig3.csv`, Figure 3 |
-| The whole procedure cuts avoidable catastrophes by a third and missed opportunities by more than half for an equal mix of the four persons; the overconfident and anxious gain about 0.29 each, the calibrated and fearful lose about 0.18 each; an agent-timed prompt (agent γ = 2) hands the calibrated person the overconfident person's record and drops the average payoff from 4.29 to 3.37; deciding after a single observation drops it to 0.38 | `results/table1.csv`, `results/sA_stakes.csv`, Table 2, Supplementary Fig. S1 |
+| The whole procedure cuts avoidable catastrophes by a third and missed opportunities by more than half for an equal mix of the four persons; the overconfident and anxious gain about 0.29 each, the calibrated and fearful lose about 0.18 each; an agent-timed decision (agent γ = 2, the person must act or give up) hands the calibrated person the overconfident person's record and drops the average payoff from 4.29 to 3.37; deciding after a single observation drops it to 0.38 | `results/table1.csv`, `results/sA_stakes.csv`, Table 2, Supplementary Fig. S1 |
 | Every outcome is a straight line in the probability of a "go" verdict, by construction: a fixed verdict does at least as well as a random one inside the model | `results/sB_p.csv`, Supplementary Fig. S2 |
-| Raising one's own action threshold works only by the factor that undoes one's over-reading (1.87 for γ = 2, 2.70 for γ = 3), which is the unknown; it leaves early quitting untouched | `results/sE_selfrule.csv`, Supplementary Table S1 |
-| A verdict read as evidence erodes the relief: a shift of one log-odds unit leaves the fearful person worse off than with no oracle | `results/sG_evidence.csv`, Supplementary Table S4 |
-| A verdict that predicts the person, read as evidence, raises avoidable catastrophes to 1.5 to 3 times what a random verdict read the same way leaves | `results/sH_mirror.csv`, Supplementary Table S5 |
+| Discounting one's own certainty by the factor that undoes one's over-reading (1.87 for γ = 2, 2.70 for γ = 3) makes the person calibrated in every measure, but the factor is the unknown; one factor for all (1.25) leaves the γ = 3 person at 2.2% avoidable catastrophes where the wait leaves them at 1.7% | `results/sE_selfrule.csv`, Supplementary Table S1 |
+| A verdict read as evidence erodes the relief: a shift of one perceived log-odds unit uses up the relief for the fearful person who drew "go" and turns "wait" into a loss for the rest | `results/sG_evidence.csv`, Supplementary Table S4 |
+| A verdict that predicts the person, read as evidence, raises avoidable catastrophes to 1.2 to 1.7 times what a random verdict read the same way and saying "go" as often leaves | `results/sH_mirror.csv`, Supplementary Table S5 |
 | "Go" relief given to a person who is both overconfident and afraid of blame raises their avoidable catastrophes (1.1% to 1.4%) | `results/sM_moral_hazard.csv`, Supplementary Table S6 |
 | Fear of blame does no damage when a well-founded action cannot fail (Q = 1) | `results/robustness.csv`, Supplementary Table S2 |
 
 ## Requirements
 
-Python 3.10 or later, `numpy`, `matplotlib`, `pytest`. Tested with numpy 2.4, matplotlib 3.10.
+Python 3.10 or later, `numpy`, `matplotlib`, `pytest`. Tested with Python 3.11.15, numpy 2.4.4, matplotlib 3.10.9 (pinned in `requirements.txt`, because numpy's random streams are not guaranteed identical across versions).
 
 ## License
 
