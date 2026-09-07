@@ -25,14 +25,24 @@ Device.
                    waiting bearable: the anxiety cost is scaled by (1-theta).
                    'go' makes acting blameless: the blame cost is scaled by
                    (1-theta).  Nothing is binding: the person re-optimises by DP
-                   under the relieved costs (compliance is endogenous).  A verdict
-                   that merely predicts what the person would do anyway ("mirror",
-                   the AI-agent configuration) is by construction identical to
-                   `none` and is not simulated.
+                   under the relieved costs (compliance is endogenous).
+                   delta > 0 adds an evidence channel: the person also reads the
+                   verdict as evidence and shifts perceived log-odds by +delta
+                   ('go') or -delta ('wait').  Supplement only.
   oracle(k,p,theta): the whole procedure = forced_wait(k) + verdict(p,theta) (Table 1).
-  self_rule(m)    : the person acts when their *perceived* log-odds cross the
-                   calibrated person's DP threshold, after talking the checked
-                   value up by m (rationalisation).  Supplement S-E only.
+  mirror(k,theta,delta): a verdict that predicts the person: after k observations
+                   it says 'go' if the person's own perceived log-odds are positive
+                   and 'wait' otherwise, with the same relief and evidence channel
+                   as a random verdict drawn at the same step (verdict_at=k).
+                   Supplement only (the AI-agent configuration).
+  self_rule(f)    : the person raises their *own* DP action threshold by the
+                   factor f (perceived units); the quit threshold is unchanged.
+                   Supplement S-E only.
+  prompt(agent_gamma): an agent that reads evidence with agent_gamma runs the
+                   calibrated-cost DP and stops when its own thresholds are
+                   crossed; at that step the person must act or give up on the
+                   evidence in hand, valued with their own gamma and R_blame.
+                   The person cannot wait.  Table 1 'agent-timed prompt'.
 
 Outcomes are objective: wrong = acted and failed (bad state or bad luck);
 avoidable = acted in the bad state (the knowable part of wrong); missed = did not
@@ -183,12 +193,20 @@ def _streams(seed, n):
 
 
 def _run_core(theta, X, success, sigma, person: Person, up_go, lo_go, up_wait, lo_wait,
-              go_mask, k_wait=0, self_rule=None):
+              go_mask, k_wait=0, self_rule=None, delta=0.0, verdict_at=0, mirror=False):
+    """verdict_at = s > 0: the verdict (random go_mask, or mirror) takes effect after the
+    s-th observation; before that the person holds the unrelieved thresholds (up_wait/lo_wait
+    are only used once the verdict is in, so callers pass k_wait >= s + 1 for a clean
+    comparison).  delta: evidence channel, perceived log-odds shifted by +delta ('go') or
+    -delta ('wait') once the verdict is in."""
     n = theta.shape[0]
     L = np.zeros(n)
     done = np.zeros(n, bool)
     acted = np.zeros(n, bool)
     steps = np.zeros(n, int)
+    go = go_mask.copy()
+    have_verdict = verdict_at == 0
+    shift = np.where(go, delta, -delta) if have_verdict else np.zeros(n)
     for t in range(1, H + 1):
         live = ~done
         if not live.any():
@@ -196,20 +214,27 @@ def _run_core(theta, X, success, sigma, person: Person, up_go, lo_go, up_wait, l
         x = theta + sigma * X[:, t - 1]
         L = np.where(live, L + 2.0 * x / sigma ** 2, L)
         steps += live
-        lp = person.gamma * L
+        if not have_verdict and t == verdict_at:
+            if mirror:
+                go = person.gamma * L > 0
+            have_verdict = True
+            shift = np.where(go, delta, -delta)
+        lp = person.gamma * L + shift
         if self_rule is not None:
-            uc, lc, m = self_rule
-            lchk = lp + np.sign(lp) * m
-            act = lchk >= uc[t]
-            quit_ = lchk <= lc[t]
+            f = self_rule
+            act = lp >= f * up_wait[t]
+            quit_ = lp <= lo_wait[t]
         else:
-            act = lp >= np.where(go_mask, up_go[t], up_wait[t])
-            quit_ = lp <= np.where(go_mask, lo_go[t], lo_wait[t])
+            act = lp >= np.where(go, up_go[t], up_wait[t])
+            quit_ = lp <= np.where(go, lo_go[t], lo_wait[t])
         if t < k_wait:
             act[:] = False
             quit_[:] = False
         if t == H:
-            act = lp >= np.where(go_mask, up_go[H], up_wait[H])
+            if self_rule is not None:
+                act = lp >= self_rule * up_wait[H]
+            else:
+                act = lp >= np.where(go, up_go[H], up_wait[H])
             quit_ = ~act
         stop = live & (act | quit_)
         acted |= stop & act
@@ -218,7 +243,7 @@ def _run_core(theta, X, success, sigma, person: Person, up_go, lo_go, up_wait, l
     avoidable = acted & (theta < 0)
     missed = (~acted) & (theta > 0)
     pay = np.where(acted, np.where(success, R_OK, R_BAD), 0.0) + C * steps
-    return dict(pay=pay, wrong=wrong, avoidable=avoidable, missed=missed, acted=acted, steps=steps)
+    return dict(pay=pay, wrong=wrong, avoidable=avoidable, missed=missed, acted=acted, steps=steps, go=go)
 
 
 def _summarise(d, mask=None):
@@ -233,10 +258,12 @@ def _summarise(d, mask=None):
 
 
 def simulate(person: Person, device="none", n=40_000, sigma=SIGMA, seed=0,
-             k=0, p=0.5, theta=0.0, m=0.0, split=False):
-    """Run n episodes.  device in {'none','forced_wait','verdict','self_rule'}.
-    With split=True and device='verdict', also return Results for the episodes
-    that received 'go' and 'wait'."""
+             k=0, p=0.5, theta=0.0, f=1.0, delta=0.0, split=False):
+    """Run n episodes.  device in {'none','forced_wait','verdict','oracle','mirror','self_rule'}.
+    With split=True and device in ('verdict','oracle','mirror'), also return Results for
+    the episodes that received 'go' and 'wait'.  For 'mirror', k is the number of
+    observations after which the verdict is formed (decisions start at step k+1); the
+    matching random comparison is device='oracle' with the same k and delta."""
     th, X, vd, suc = _streams(seed, n)
     up0, lo0 = thresholds_for(person, sigma)
     ones = np.ones(n, bool)
@@ -245,20 +272,53 @@ def simulate(person: Person, device="none", n=40_000, sigma=SIGMA, seed=0,
     elif device == "forced_wait":
         d = _run_core(th, X, suc, sigma, person, up0, lo0, up0, lo0, ones, k_wait=k)
     elif device == "self_rule":
-        uc, lc = thresholds_for(CALIBRATED, sigma)
-        d = _run_core(th, X, suc, sigma, person, up0, lo0, up0, lo0, ones, self_rule=(uc, lc, m))
-    elif device in ("verdict", "oracle"):
+        d = _run_core(th, X, suc, sigma, person, up0, lo0, up0, lo0, ones, self_rule=f)
+    elif device in ("verdict", "oracle", "mirror"):
         # 'oracle' = the whole procedure: an interval of k steps (the rite takes time)
-        # plus the random verdict with relief.  'verdict' = k=0.
+        # plus the random verdict with relief.  'verdict' = k=0.  'mirror' = the verdict
+        # is the person's own leaning after k observations.
         go = vd.random(n) < p
         up_go, lo_go = thresholds_for(person, sigma, relief_go=theta)
         up_wt, lo_wt = thresholds_for(person, sigma, relief_wait=theta)
-        d = _run_core(th, X, suc, sigma, person, up_go, lo_go, up_wt, lo_wt, go,
-                      k_wait=(k + 1 if device == "oracle" else 0))
+        if device == "mirror":
+            d = _run_core(th, X, suc, sigma, person, up_go, lo_go, up_wt, lo_wt, go,
+                          k_wait=k + 1, delta=delta, verdict_at=k, mirror=True)
+            go = d["go"]
+        else:
+            d = _run_core(th, X, suc, sigma, person, up_go, lo_go, up_wt, lo_wt, go,
+                          k_wait=(k + 1 if device == "oracle" else 0), delta=delta)
         if split:
             return _summarise(d), _summarise(d, go), _summarise(d, ~go)
     else:
         raise ValueError(device)
+    return _summarise(d)
+
+
+def simulate_prompt(person: Person, agent_gamma=2.0, n=40_000, sigma=SIGMA, seed=0) -> Result:
+    """Agent-timed prompt.  An agent reading evidence with agent_gamma (calibrated costs)
+    runs the DP and stops when its own perceived log-odds cross its thresholds.  At that
+    step the person must act or give up on the evidence in hand: act iff the perceived
+    value of acting, with the person's own gamma and R_blame, is positive.  No waiting."""
+    th, X, _, suc = _streams(seed, n)
+    agent = Person(gamma=agent_gamma, label="agent")
+    up_a, lo_a = thresholds_for(agent, sigma)
+    L = np.zeros(n); done = np.zeros(n, bool); acted = np.zeros(n, bool); steps = np.zeros(n, int)
+    for t in range(1, H + 1):
+        live = ~done
+        if not live.any():
+            break
+        x = th + sigma * X[:, t - 1]
+        L = np.where(live, L + 2.0 * x / sigma ** 2, L)
+        steps += live
+        la = agent_gamma * L
+        stop = live & ((la >= up_a[t]) | (la <= lo_a[t]) | (t == H))
+        lp = person.gamma * L
+        ps = p_success(sigmoid(lp))
+        act = ps * R_OK + (1 - ps) * (R_BAD - person.r_blame) > 0
+        acted |= stop & act
+        done |= stop
+    d = dict(pay=np.where(acted, np.where(suc, R_OK, R_BAD), 0.0) + C * steps,
+             wrong=acted & ~suc, avoidable=acted & (th < 0), missed=(~acted) & (th > 0), acted=acted, steps=steps)
     return _summarise(d)
 
 

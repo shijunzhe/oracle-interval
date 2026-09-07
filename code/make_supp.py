@@ -1,6 +1,7 @@
 """make_supp.py — supplementary simulations (M3): S-A stakes ratio, S-B verdict probability,
-S-W subjective relief (by construction), S-D theta curve, S-E self-ignorance, S-F pressure
-strength, robustness table.   python3 code/make_supp.py [n]
+S-W subjective relief (by construction), S-D theta curve, S-E self-imposed rule, S-F pressure
+strength, S-G verdict read as evidence, S-H mirror verdict, S-M moral hazard, robustness
+table.   python3 code/make_supp.py [n]
 """
 # NOTE (2026-09-06): the figures this script draws are superseded by code/plot_supp.py, which redraws them
 # from results/*.csv under the figure rules in PLAN §8 (no overlaps, legends outside data, lowercase bold
@@ -129,22 +130,78 @@ def s_d():
 
 # ---------------------------------------------------------------- S-E self-ignorance
 def s_e():
+    """A self-imposed rule: the person raises their own action threshold by the factor f
+    (perceived units; the quit threshold is unchanged).  f_star is the factor that would
+    restore the calibrated person's threshold in true-evidence units, gamma*up_cal/up_own:
+    the number a person would need to know their own gamma to set."""
     rows = []
     cal = iv.simulate(iv.CALIBRATED, "none", n=N, seed=49)
+    up_cal, _ = iv.thresholds_for(iv.CALIBRATED, iv.SIGMA)
     for g in (1.0, 1.5, 2.0, 3.0):
         P = iv.Person(gamma=g)
+        up_own, _ = iv.thresholds_for(P, iv.SIGMA)
+        f_star = float(g * up_cal[1] / up_own[1])
         own = iv.simulate(P, "none", n=N, seed=49)
-        rule0 = iv.simulate(P, "self_rule", n=N, seed=49, m=0.0)
-        rule1 = iv.simulate(P, "self_rule", n=N, seed=49, m=1.0)
         wait2 = iv.simulate(P, "forced_wait", n=N, seed=49, k=3)
-        rows.append(dict(gamma=g, own_avoidable=own.avoidable, self_rule_avoidable=rule0.avoidable,
-                         self_rule_rationalised_avoidable=rule1.avoidable, forced_wait2_avoidable=wait2.avoidable,
-                         own_payoff=own.payoff, self_rule_payoff=rule0.payoff, forced_wait2_payoff=wait2.payoff))
-        print(f"S-E γ={g}: avoidable own {100*own.avoidable:.2f}% | self-rule(as if calibrated) {100*rule0.avoidable:.2f}% | +rationalisation m=1 {100*rule1.avoidable:.2f}% | forced wait 2 {100*wait2.avoidable:.2f}%  (calibrated {100*cal.avoidable:.2f}%)")
+        row = dict(gamma=g, f_star=f_star, own_avoidable=own.avoidable, own_missed=own.missed, own_payoff=own.payoff,
+                   forced_wait2_avoidable=wait2.avoidable, forced_wait2_missed=wait2.missed, forced_wait2_payoff=wait2.payoff)
+        for f in (1.25, 1.5, 2.0):
+            r = iv.simulate(P, "self_rule", n=N, seed=49, f=f)
+            row[f"f{f}_avoidable"] = r.avoidable; row[f"f{f}_missed"] = r.missed; row[f"f{f}_payoff"] = r.payoff
+        r = iv.simulate(P, "self_rule", n=N, seed=49, f=f_star)
+        row["fstar_avoidable"] = r.avoidable; row["fstar_missed"] = r.missed; row["fstar_payoff"] = r.payoff
+        rows.append(row)
+        print(f"S-E γ={g}: f*={f_star:.2f} | own {100*own.avoidable:.2f}%/{100*own.missed:.1f}%/{own.payoff:.2f} | wait2 {100*wait2.avoidable:.2f}%/{100*wait2.missed:.1f}%/{wait2.payoff:.2f} | f=1.25 {100*row['f1.25_avoidable']:.2f}%/{100*row['f1.25_missed']:.1f}%/{row['f1.25_payoff']:.2f} | f* {100*r.avoidable:.2f}%/{100*r.missed:.1f}%/{r.payoff:.2f}  (calibrated {100*cal.avoidable:.2f}%/{100*cal.missed:.1f}%)")
     write_csv(os.path.join(RES, "sE_selfrule.csv"), rows)
 
 
-# ---------------------------------------------------------------- S-F pressure strength
+# ---------------------------------------------------------------- S-G the verdict read as evidence
+def s_g():
+    """The consulter also treats the verdict as evidence about the world: perceived
+    log-odds shift by +delta ('go') or -delta ('wait').  Random verdict, theta=0.9, p=0.25."""
+    rows = []
+    for P in iv.PEOPLE:
+        own = iv.simulate(P, "none", n=N, seed=23)
+        for d in (0.0, 0.5, 1.0, 1.5, 2.0):
+            r = iv.simulate(P, "verdict", n=N, seed=23, theta=0.9, p=0.25, delta=d)
+            rows.append(dict(person=P.label, delta=d, own_payoff=own.payoff, own_avoidable=own.avoidable, own_missed=own.missed,
+                             payoff=r.payoff, avoidable=r.avoidable, missed=r.missed))
+        print(f"S-G {P.label:>13}: own {own.payoff:.2f} | " + " ".join(f"δ={x['delta']}: {x['payoff']:.2f}/{100*x['avoidable']:.2f}%/{100*x['missed']:.1f}%" for x in rows if x['person'] == P.label))
+    write_csv(os.path.join(RES, "sG_evidence.csv"), rows)
+
+
+# ---------------------------------------------------------------- S-H a verdict that predicts the person
+def s_h():
+    """Mirror verdict (says what the person's own leaning after k=2 observations says)
+    against a random verdict drawn at the same step, both with relief theta=0.9 and the
+    evidence channel delta in {0, 1}."""
+    rows = []
+    for P in iv.PEOPLE:
+        for d in (0.0, 1.0):
+            rnd = iv.simulate(P, "oracle", n=N, seed=23, k=2, theta=0.9, p=0.25, delta=d)
+            mir = iv.simulate(P, "mirror", n=N, seed=23, k=2, theta=0.9, delta=d)
+            rows.append(dict(person=P.label, delta=d, random_payoff=rnd.payoff, random_avoidable=rnd.avoidable, random_missed=rnd.missed,
+                             mirror_payoff=mir.payoff, mirror_avoidable=mir.avoidable, mirror_missed=mir.missed))
+            print(f"S-H {P.label:>13} δ={d}: random {rnd.payoff:.2f}/{100*rnd.avoidable:.2f}%/{100*rnd.missed:.1f}% | mirror {mir.payoff:.2f}/{100*mir.avoidable:.2f}%/{100*mir.missed:.1f}%")
+    write_csv(os.path.join(RES, "sH_mirror.csv"), rows)
+
+
+# ---------------------------------------------------------------- S-M moral hazard: two faults in one person
+def s_m():
+    """gamma in {1,2} x R_blame in {0,100} under the random verdict theta=0.9, split by verdict."""
+    rows = []
+    for g in (1.0, 2.0):
+        for rb in (0.0, 100.0):
+            P = iv.Person(gamma=g, r_blame=rb, label=f"gamma{g:g}_blame{rb:g}")
+            own = iv.simulate(P, "none", n=N, seed=23)
+            _, go, wt = iv.simulate(P, "verdict", n=N, seed=23, theta=0.9, p=0.25, split=True)
+            rows.append(dict(gamma=g, r_blame=rb, own_payoff=own.payoff, own_avoidable=own.avoidable, own_missed=own.missed,
+                             go_payoff=go.payoff, go_avoidable=go.avoidable, go_missed=go.missed,
+                             wait_payoff=wt.payoff, wait_avoidable=wt.avoidable, wait_missed=wt.missed))
+            print(f"S-M γ={g:g} R_blame={rb:g}: own {own.payoff:.2f}/{100*own.avoidable:.2f}%/{100*own.missed:.1f}% | drew go {go.payoff:.2f}/{100*go.avoidable:.2f}%/{100*go.missed:.1f}% | drew wait {wt.payoff:.2f}/{100*wt.avoidable:.2f}%/{100*wt.missed:.1f}%")
+    write_csv(os.path.join(RES, "sM_moral_hazard.csv"), rows)
+
+
 def s_f():
     rows = []
     cal = iv.simulate(iv.CALIBRATED, "none", n=N, seed=51)
@@ -204,5 +261,5 @@ def robustness():
 
 
 if __name__ == "__main__":
-    s_a(); s_b(); s_w(); s_d(); s_e(); s_f(); robustness()
+    s_a(); s_b(); s_w(); s_d(); s_e(); s_f(); s_g(); s_h(); s_m(); robustness()
     print("done")

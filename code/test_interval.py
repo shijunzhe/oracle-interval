@@ -121,13 +121,68 @@ def test_fearful_on_go_acts_only_when_evidence_supports():
 
 
 # ---------------------------------------------------------------- self rule (S-E)
-def test_self_rule_fails_for_overconfident():
-    """a threshold set 'as if calibrated' but checked on inflated beliefs fires early"""
+def test_self_rule_needs_the_factor_the_person_does_not_know():
+    """raising one's own bar by the factor that restores the calibrated bar in true units
+    brings avoidable catastrophes to the calibrated rate, but leaves early quitting untouched,
+    and the factor grows with gamma"""
     rc = iv.simulate(iv.CALIBRATED, "none", n=N)
-    rs = iv.simulate(iv.OVERCONFIDENT, "self_rule", n=N, m=0.0)
-    assert rs.avoidable > 3 * rc.avoidable
-    rs_m = iv.simulate(iv.OVERCONFIDENT, "self_rule", n=N, m=1.0)
-    assert rs_m.avoidable >= rs.avoidable
+    up_cal, _ = iv.thresholds_for(iv.CALIBRATED, iv.SIGMA)
+    fstars = []
+    for g in (1.5, 2.0, 3.0):
+        P = iv.Person(gamma=g)
+        up_own, _ = iv.thresholds_for(P, iv.SIGMA)
+        f_star = g * up_cal[1] / up_own[1]
+        fstars.append(f_star)
+        own = iv.simulate(P, "none", n=N)
+        rs = iv.simulate(P, "self_rule", n=N, f=f_star)
+        assert abs(rs.avoidable - rc.avoidable) < 3 * se_diff(rs.avoidable, rc.avoidable)
+        assert rs.missed > own.missed - 3 * se_diff(rs.missed, own.missed)   # quitting unchanged
+        assert rs.missed > 1.5 * rc.missed
+    assert fstars[0] < fstars[1] < fstars[2]
+    # the calibrated person who raises the bar only loses
+    r = iv.simulate(iv.CALIBRATED, "self_rule", n=N, f=1.5)
+    assert r.payoff < rc.payoff
+
+
+# ---------------------------------------------------------------- evidence channel and mirror (S-G, S-H)
+def test_verdict_read_as_evidence_erodes_the_relief():
+    own = iv.simulate(iv.FEARFUL, "none", n=N)
+    r0 = iv.simulate(iv.FEARFUL, "verdict", n=N, theta=0.9, p=0.25, delta=0.0)
+    r1 = iv.simulate(iv.FEARFUL, "verdict", n=N, theta=0.9, p=0.25, delta=1.0)
+    assert r0.payoff >= own.payoff - 2 * np.hypot(r0.payoff_se, own.payoff_se)
+    assert r1.payoff < own.payoff - 2 * np.hypot(r1.payoff_se, own.payoff_se)
+
+
+def test_mirror_equals_random_without_evidence_channel_for_unpressured_people():
+    for P in (iv.CALIBRATED, iv.OVERCONFIDENT):
+        rnd = iv.simulate(P, "oracle", n=N, k=2, theta=0.9, p=0.25, delta=0.0)
+        mir = iv.simulate(P, "mirror", n=N, k=2, theta=0.9, delta=0.0)
+        assert rnd.payoff == mir.payoff and rnd.avoidable == mir.avoidable
+
+
+def test_mirror_read_as_evidence_raises_avoidable_catastrophes():
+    for P in iv.PEOPLE:
+        rnd = iv.simulate(P, "oracle", n=N, k=2, theta=0.9, p=0.25, delta=1.0)
+        mir = iv.simulate(P, "mirror", n=N, k=2, theta=0.9, delta=1.0)
+        assert mir.avoidable > rnd.avoidable + 2 * se_diff(mir.avoidable, rnd.avoidable)
+
+
+# ---------------------------------------------------------------- moral hazard (S-M) and the agent-timed prompt
+def test_go_relief_hurts_a_person_who_is_also_overconfident():
+    P = iv.Person(gamma=2.0, r_blame=100.0)
+    own = iv.simulate(P, "none", n=N)
+    _, go, _ = iv.simulate(P, "verdict", n=N, theta=0.9, p=0.25, split=True)
+    assert go.avoidable > own.avoidable + 2 * se_diff(go.avoidable, own.avoidable, n=N // 4)
+
+
+def test_agent_timed_prompt_hands_the_calibrated_person_the_agent_error_rate():
+    rc = iv.simulate(iv.CALIBRATED, "none", n=N)
+    ro = iv.simulate(iv.OVERCONFIDENT, "none", n=N)
+    rp = iv.simulate_prompt(iv.CALIBRATED, agent_gamma=2.0, n=N)
+    assert abs(rp.avoidable - ro.avoidable) < 3 * se_diff(rp.avoidable, ro.avoidable)
+    assert rp.avoidable > 3 * rc.avoidable
+    rp1 = iv.simulate_prompt(iv.CALIBRATED, agent_gamma=1.0, n=N)
+    assert abs(rp1.payoff - rc.payoff) < 3 * np.hypot(rp1.payoff_se, rc.payoff_se)
 
 
 # ---------------------------------------------------------------- reproducibility

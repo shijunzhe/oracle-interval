@@ -231,10 +231,23 @@ def table1(p=0.25, suffix=""):
             rows.append(dict(step_cost=c, person=P.label, device="compressed interval", **r))
         rows.append(dict(step_cost=c, person="population (equal mix)", device="compressed interval",
                          **{k: float(np.mean([r[k] for r in res])) for k in res[0]}))
+    # agent-timed prompt: an agent that reads each observation twice as strongly (gamma 2)
+    # stops when its own thresholds are crossed; the person must then act or give up.
+    for c in (-1.0, -0.5):
+        old_c = iv.C; iv.C = c; iv.dp_thresholds.cache_clear()
+        res = [iv.simulate_prompt(P, agent_gamma=2.0, n=N, seed=31) for P in iv.PEOPLE]
+        for P, r in zip(iv.PEOPLE, res):
+            rows.append(dict(step_cost=c, person=P.label, device="agent-timed prompt", payoff=r.payoff,
+                             avoidable=r.avoidable, missed=r.missed, wrong=r.wrong, steps=r.steps))
+        rows.append(dict(step_cost=c, person="population (equal mix)", device="agent-timed prompt",
+                         payoff=float(np.mean([r.payoff for r in res])), avoidable=float(np.mean([r.avoidable for r in res])),
+                         missed=float(np.mean([r.missed for r in res])), wrong=float(np.mean([r.wrong for r in res])),
+                         steps=float(np.mean([r.steps for r in res]))))
+        iv.C = old_c; iv.dp_thresholds.cache_clear()
     write_csv(os.path.join(RES, f"table1{suffix}.csv"), rows)
     print(f"table1 p={p} (population, equal mix):")
     for c in (-1.0, -0.5):
-        for col in ("act at once", "never act", "own", "procedure", "interval only", "relief only"):
+        for col in ("act at once", "never act", "own", "procedure", "interval only", "relief only", "agent-timed prompt", "compressed interval"):
             r = [x for x in rows if x["step_cost"] == c and x["person"].startswith("population") and x["device"] == col][0]
             print(f"  C={c:+.1f} {col:>14}: payoff {r['payoff']:+6.2f}  avoidable {100*r['avoidable']:5.2f}%  missed {100*r['missed']:5.1f}%")
 
