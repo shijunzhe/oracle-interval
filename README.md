@@ -39,8 +39,8 @@ The world is in one of two states, good or bad, equally likely at the start. Eac
 | One random verdict brings the anxious person who drew "wait" from 7.4% to 2.2% missed opportunities and the fearful person who drew "go" from 3.4% to 2.0%, against 1.8% for the calibrated person; a verdict with no relief changes nothing | `results/fig3.csv`, Figure 3 |
 | The whole procedure cuts avoidable catastrophes by a third and missed opportunities by more than half for a mixed population, and pays only when a step of waiting costs about 0.5% of the catastrophe or less; deciding after a single observation collapses the payoff from 4.29 to 0.38 | `results/table1.csv`, `results/sA_stakes.csv`, Table 1, Supplementary Fig. S1 |
 | Every outcome is a straight line in the probability of a "go" verdict: the draw itself buys no expected payoff | `results/sB_p.csv`, Supplementary Fig. S2 |
-| A self-imposed higher bar makes the overconfident person act earlier, not later | `results/sE_selfrule.csv`, Supplementary Table S2 |
-| Fear of blame does no damage when a well-founded action cannot fail (Q = 1) | `results/robustness.csv`, Supplementary Table S3 |
+| A self-imposed higher bar makes the overconfident person act earlier, not later | `results/sE_selfrule.csv`, Supplementary Table S1 |
+| Fear of blame does no damage when a well-founded action cannot fail (Q = 1) | `results/robustness.csv`, Supplementary Table S2 |
 
 ## Requirements
 

@@ -202,6 +202,9 @@ def table1(p=0.25, suffix=""):
         for P in iv.PEOPLE:
             cells[(P.label, "own")] = iv.simulate(P, "none", n=N, seed=31)
             cells[(P.label, "procedure")] = iv.simulate(P, "oracle", n=N, seed=31, k=2, theta=0.9, p=p)
+            # forced_wait's k is the first step at which a decision is allowed, so k=3 is
+            # two imposed steps beyond the first observation: the same interval as the
+            # procedure's oracle(k=2), which uses k_wait = k + 1 (see interval.simulate).
             cells[(P.label, "interval only")] = iv.simulate(P, "forced_wait", n=N, seed=31, k=3)
             cells[(P.label, "relief only")] = iv.simulate(P, "verdict", n=N, seed=31, theta=0.9, p=p)
         act_now_pay = 0.5 * (iv.Q * iv.R_OK + (1 - iv.Q) * iv.R_BAD) + 0.5 * ((1 - iv.Q) * iv.R_OK + iv.Q * iv.R_BAD) + c
