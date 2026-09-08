@@ -121,7 +121,9 @@ def fig2():
                 handles.append((h, names[g]))
     # luck floor for the overconfident person: failures after acting in the good state
     sub2 = sorted([r for r in rows if r["gamma"] == iv.GAMMA_OVER], key=lambda r: r["k"])
-    floor = [100 * (r["wrong"] - r["avoidable"]) for r in sub2]
+    # wrong = acted and failed; a share (1 - Q) of actions in the bad state succeed, so
+    # failures after acting in the good state = wrong - Q * avoidable
+    floor = [100 * (r["wrong"] - iv.Q * r["avoidable"]) for r in sub2]
     hf, = axes[0].plot(ks, floor, color=ORANGE, lw=1.2, ls="--")
     axes[0].annotate("failures after acting in the good state\n(overconfident person). Waiting leaves these.",
                      xy=(ks[-2], floor[-2]), xytext=(ks[-1] + 0.05, floor[-1] + 1.0), ha="right", va="bottom",
