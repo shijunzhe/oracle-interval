@@ -11,7 +11,7 @@ pip install -r requirements.txt
 bash reproduce.sh
 ```
 
-`reproduce.sh` runs the tests, the main-text simulations (Figures 1 to 3 and Table 2), the supplementary simulations (Figures S1 to S4 and Tables S1 to S6), and then redraws all figures. With the default of 100,000 decisions per setting (60,000 for the supplementary sweeps) it takes under a minute on a laptop. All random draws use fixed seeds, so the tables in `results/` are regenerated exactly.
+`reproduce.sh` runs the tests, the main-text simulations (Figures 1 to 3 and Table 2), the supplementary simulations (Figures S1 to S4 and Tables S1 to S8), and then redraws all figures. With the default of 100,000 decisions per setting (60,000 for the supplementary sweeps) it takes under a minute on a laptop. All random draws use fixed seeds, so the tables in `results/` are regenerated exactly.
 
 For a quick check, `python3 code/interval.py` runs the model alone with 40,000 decisions per setting in a few seconds.
 
@@ -24,7 +24,7 @@ For a quick check, `python3 code/interval.py` runs the model alone with 40,000 d
 | `code/make_figs.py` | Simulations behind Figure 1 (one trajectory), Figure 2 (imposed waiting), Figure 3 (one draw, two directions) and Table 2 (the whole procedure, the agent-timed prompt and the single-observation limit). Writes `results/`. |
 | `code/make_supp.py` | Simulations behind the Supplementary Information: stakes sweep, verdict-probability sweep, θ curve, pressure strength, the self-imposed rule, subjective costs, the verdict read as evidence, the mirror verdict, two faults in one person, robustness. Writes `results/`. |
 | `code/plot_figs.py`, `code/plot_supp.py` | Redraw all figures from `results/*.csv` without rerunning the simulations. Write `figs/` (300 dpi PNG and vector PDF). |
-| `results/` | One CSV per figure or table. `table1.csv` is the paper's Table 2 (the paper's Table 1 is the list of persons); `table1_paired.csv` holds the per-decision 95% intervals of its population cells and the paired differences against own judgement. Seeds: Fig. 1 rng(3); Fig. 2 seed 11; Fig. 3 seed 23; Table 2 seed 31; S-A 41, S-B 43, S-W 45, S-D 47, S-E 49, S-F 51, S-G/S-H/S-M 23, robustness 53. |
+| `results/` | One CSV per figure or table. `table1.csv` is the paper's Table 2 (the paper's Table 1 is the list of persons); `table1_paired.csv` holds the per-decision 95% intervals of its population cells and the paired differences against own judgement. Seeds: Fig. 1 rng(3); Fig. 2 seed 11; Fig. 3 seed 23; Table 2 seed 31; S-A 41, S-B 43, S-W 45, S-D 47, S-E 49, S-F 51, S-G/S-H/S-M/S-N 23, robustness 53. |
 | `figs/` | The figures as they appear in the paper. |
 
 ## The model in one paragraph
@@ -43,7 +43,8 @@ The world is in one of two states, good or bad, equally likely at the start. Eac
 | A verdict read as evidence erodes the relief: a shift of one perceived log-odds unit uses up the relief for the fearful person who drew "go" and turns "wait" into a loss for the rest | `results/sG_evidence.csv`, Supplementary Table S4 |
 | A verdict that predicts the person, read as evidence, raises avoidable catastrophes to 1.2 to 1.7 times what a random verdict read the same way and saying "go" as often leaves | `results/sH_mirror.csv`, Supplementary Table S5 |
 | "Go" relief given to a person who is both overconfident and afraid of blame raises their avoidable catastrophes (1.1% to 1.4%) | `results/sM_moral_hazard.csv`, Supplementary Table S6 |
-| Fear of blame does no damage when a well-founded action cannot fail (Q = 1) | `results/robustness.csv`, Supplementary Table S2 |
+| When a well-founded action cannot fail (Q = 1), fear of blame leaves missed opportunities at the calibrated rate (1.19% against 1.18%) but still delays action | `results/robustness.csv`, Supplementary Table S2 |
+| Two controls: an imposed wait in which no observation arrives changes no error rate and costs the two steps (payoff about 1.0 lower for everyone); protection of both action and inaction, given to everyone with no draw and with the same two-step interval, matches the procedure's payoff for every person and beats it for the anxious (4.54 against 4.49) and the fearful (4.55 against 4.51) | `results/sN_controls.csv`, Supplementary Table S8 |
 
 ## Requirements
 

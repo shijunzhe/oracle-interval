@@ -197,3 +197,22 @@ def test_seed_reproducible():
     a = iv.simulate(iv.ANXIOUS, "verdict", n=5000, theta=0.9, seed=7)
     b = iv.simulate(iv.ANXIOUS, "verdict", n=5000, theta=0.9, seed=7)
     assert a.payoff == b.payoff
+
+
+def test_blind_wait_matches_none_when_no_interval():
+    """blind_wait with k<=1 imposes nothing and must reproduce own judgement exactly."""
+    for P in iv.PEOPLE:
+        a = iv.simulate(P, "none", n=3000, seed=5)
+        b = iv.simulate(P, "blind_wait", n=3000, seed=5, k=1)
+        assert a.payoff == b.payoff and a.avoidable == b.avoidable and a.missed == b.missed
+
+
+def test_blind_wait_charges_the_interval_and_changes_no_first_decision():
+    """With k=3 and no observation in steps 2-3, the first decision is taken on the
+    step-1 observation alone, so every episode runs at least three steps."""
+    own = iv.simulate(iv.OVERCONFIDENT, "none", n=3000, seed=5)
+    r = iv.simulate(iv.OVERCONFIDENT, "blind_wait", n=3000, seed=5, k=3)
+    assert r.steps >= 3.0
+    # same observations in the same order, so the same decisions, two steps later
+    assert abs(r.avoidable - own.avoidable) < 1e-9 and abs(r.missed - own.missed) < 2e-3
+    assert abs((own.payoff - r.payoff) - 2 * (-iv.C)) < 0.05

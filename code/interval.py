@@ -202,7 +202,8 @@ def _streams(seed, n):
 
 
 def _run_core(theta, X, success, sigma, person: Person, up_go, lo_go, up_wait, lo_wait,
-              go_mask, k_wait=0, self_rule=None, delta=0.0, verdict_at=0, mirror=False):
+              go_mask, k_wait=0, self_rule=None, delta=0.0, verdict_at=0, mirror=False,
+              blind_until=0):
     """verdict_at = s > 0: the verdict (random go_mask, or mirror) takes effect after the
     s-th observation; before that the person holds the unrelieved thresholds (up_wait/lo_wait
     are only used once the verdict is in, so callers pass k_wait >= s + 1 for a clean
@@ -222,8 +223,17 @@ def _run_core(theta, X, success, sigma, person: Person, up_go, lo_go, up_wait, l
         live = ~done
         if not live.any():
             break
-        x = theta + sigma * X[:, t - 1]
-        L = np.where(live, L + 2.0 * x / sigma ** 2, L)
+        if 1 < t <= blind_until:
+            # 'blind_wait': the imposed interval passes with no observation arriving, so the
+            # first decision (at step blind_until) is taken on what was in hand at step 1;
+            # observations resume the step after, in the same order as without the interval,
+            # so the error rates differ from own judgement only through the shortened horizon.
+            # Each step is still charged.
+            pass
+        else:
+            col = t - 1 if (blind_until == 0 or t <= blind_until) else t - blind_until
+            x = theta + sigma * X[:, col]
+            L = np.where(live, L + 2.0 * x / sigma ** 2, L)
         steps += live
         if not have_verdict and t == verdict_at:
             if mirror:
@@ -270,7 +280,7 @@ def _summarise(d, mask=None):
 
 def simulate(person: Person, device="none", n=40_000, sigma=None, seed=0,
              k=0, p=0.5, theta=0.0, f=1.0, delta=0.0, split=False):
-    """Run n episodes.  device in {'none','forced_wait','verdict','oracle','mirror','self_rule'}.
+    """Run n episodes.  device in {'none','forced_wait','blind_wait','verdict','oracle','mirror','self_rule'}.
     With split=True and device in ('verdict','oracle','mirror'), also return Results for
     the episodes that received 'go' and 'wait'.  For 'mirror', k is the number of
     observations after which the verdict is formed (decisions start at step k+1); the
@@ -283,6 +293,9 @@ def simulate(person: Person, device="none", n=40_000, sigma=None, seed=0,
         d = _run_core(th, X, suc, sigma, person, up0, lo0, up0, lo0, ones)
     elif device == "forced_wait":
         d = _run_core(th, X, suc, sigma, person, up0, lo0, up0, lo0, ones, k_wait=k)
+    elif device == "blind_wait":
+        # the same interval as forced_wait(k), but no observation arrives during it
+        d = _run_core(th, X, suc, sigma, person, up0, lo0, up0, lo0, ones, k_wait=k, blind_until=k)
     elif device == "self_rule":
         d = _run_core(th, X, suc, sigma, person, up0, lo0, up0, lo0, ones, self_rule=f)
     elif device in ("verdict", "oracle", "mirror"):

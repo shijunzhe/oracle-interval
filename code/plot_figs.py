@@ -73,7 +73,9 @@ def fig1():
     ax.axhline(0, color=INK2, lw=0.6)
     ax.axhline(thr_c, color=BLUE, lw=1.3, ls="--")
     ax.axhline(thr_o, color=ORANGE, lw=1.3, ls="--")
-    ax.axvspan(t_o, t_o + 2, color=GRID, alpha=.75, lw=0)
+    # the two imposed steps of Fig. 2 (forced_wait k=3): after the first observation, no
+    # decision at steps 2 and 3 until the third observation is in
+    ax.axvspan(1, 3, color=GRID, alpha=.75, lw=0)
     ax.plot(steps, L, color=INK, lw=2, marker="o", ms=4.5, zorder=4)
     ax.scatter([t_o], [L[t_o - 1]], s=170, facecolor="none", edgecolor=ORANGE, lw=1.8, zorder=5)
     xr = len(L) + 0.45
@@ -82,10 +84,10 @@ def fig1():
     ax.text(xr, thr_o + 0.15, "the overconfident person acts above this line\n(each observation counted twice)", ha="right", va="bottom", fontsize=7.5, color=INK2)
     # the act: text in the empty band between 0 and the orange bar, with a leader to the circled point
     ax.annotate("step %d: the overconfident person acts.\nThe action is final, and the state is bad." % t_o,
-                xy=(t_o + 0.12, L[t_o - 1] - 0.15), xytext=(t_o + 1.35, 1.55), va="top", ha="left", fontsize=7.5, color=INK2,
+                xy=(t_o + 0.12, L[t_o - 1] - 0.15), xytext=(t_o + 1.6, 1.55), va="top", ha="left", fontsize=7.5, color=INK2,
                 arrowprops=dict(arrowstyle="-", color=INK2, lw=0.8, shrinkA=0, shrinkB=2))
     # the interval: text inside the shaded band, below the trajectory
-    ax.text(t_o + 0.1, min(L) + 1.4, "an imposed wait of two more steps\n(shaded): the run breaks before\nanyone may act", ha="left", va="bottom", fontsize=7.5, color=INK2)
+    ax.text(1.1, min(L) - 0.2, "two imposed steps after\nthe first observation\n(shaded): the first\ndecision comes at step 3,\nand by then the run\nhas broken", ha="left", va="bottom", fontsize=7.5, color=INK2)
     ax.set_xlabel("step (one observation per step)")
     ax.set_ylabel("evidence that the state is good\n(log-odds; 0 means even)")
     ax.set_xlim(0.5, xr); ax.set_xticks(steps); ax.set_ylim(min(L) - 0.5, thr_c + 1.3)
@@ -130,7 +132,7 @@ def fig2():
         ax.set_xlabel("imposed wait before any decision (steps)"); ax.set_xticks(ks)
     axes[0].set_ylabel("% of decisions"); axes[1].set_ylabel("% of decisions"); axes[2].set_ylabel("payoff units")
     axes[0].set_ylim(0, max(100 * r["avoidable"] for r in rows) * 1.4)
-    fig.legend([h for h, _ in handles] + [hf], [n for _, n in handles] + ["luck floor (see panel a)"],
+    fig.legend([h for h, _ in handles] + [hf], [n for _, n in handles] + ["failures after acting in the good state, γ = 2 (panel a)"],
                loc="lower center", ncol=5, frameon=False, fontsize=7.5, bbox_to_anchor=(0.5, -0.02), handlelength=2.2)
     fig.tight_layout(rect=(0, 0.07, 1, 1))
     save(fig, "fig2_waiting")

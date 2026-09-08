@@ -1,0 +1,25 @@
+person,setting,payoff,avoidable,missed,steps
+calibrated,own judgement,4.749125,0.00207,0.01772,3.58215
+calibrated,interval only,4.54699,0.00185,0.01104,4.18962
+calibrated,blind wait,3.748765,0.00208,0.0178,5.58007
+calibrated,"protection both ways, no draw",4.749125,0.00207,0.01772,3.58215
+calibrated,protection both ways + interval,4.54699,0.00185,0.01104,4.18962
+calibrated,the procedure,4.54699,0.00185,0.01104,4.18962
+overconfident,own judgement,3.7131,0.01616,0.04531,2.2486
+overconfident,interval only,3.976465,0.0103,0.02169,3.45227
+overconfident,blind wait,2.7131,0.01616,0.04531,4.2486
+overconfident,"protection both ways, no draw",3.7131,0.01616,0.04531,2.2486
+overconfident,protection both ways + interval,3.976465,0.0103,0.02169,3.45227
+overconfident,the procedure,3.976465,0.0103,0.02169,3.45227
+anxious,own judgement,4.23772,0.00599,0.07402,2.33456
+anxious,interval only,4.28595,0.00486,0.03247,3.5597
+anxious,blind wait,3.23677,0.006,0.07402,4.33446
+anxious,"protection both ways, no draw",4.72862,0.00249,0.0224,3.39276
+anxious,protection both ways + interval,4.538205,0.00223,0.01304,4.07759
+anxious,the procedure,4.490185,0.00277,0.01791,3.95003
+fearful,own judgement,4.650845,0.00094,0.0339,3.51111
+fearful,interval only,4.499395,0.00091,0.01787,4.26681
+fearful,blind wait,3.650425,0.00095,0.03402,5.50515
+fearful,"protection both ways, no draw",4.744245,0.00186,0.01871,3.59671
+fearful,protection both ways + interval,4.545035,0.00167,0.01151,4.20833
+fearful,the procedure,4.5078,0.0011,0.01621,4.252

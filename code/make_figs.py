@@ -50,14 +50,20 @@ def fig1():
         L = np.cumsum(2 * x / iv.SIGMA ** 2)
         lp = 2.0 * L
         t_o = np.argmax(lp >= up_o[1]) + 1 if (lp >= up_o[1]).any() else None
-        if t_o is None or t_o > 3:
+        # The overconfident person must act at step 2, inside the two imposed steps of
+        # Fig. 2 (forced_wait k=3: no decision at steps 1 and 2, first decision at step 3),
+        # and by step 3 the perceived evidence must be back under their bar, so that the
+        # same rule that Fig. 2 scores would have held this person past the run.
+        if t_o is None or t_o != 2:
             continue
         # calibrated must not have acted by t_o, and evidence must later reverse below 0
         if (L[:t_o] >= up_c[1]).any():
             continue
         if L[t_o:].min() > -0.5 or L[t_o + 1] > L[t_o - 1]:
             continue
-        score = t_o  # prefer 2 or 3 steps
+        if (lp[2:] >= up_o[1]).any() or L.min() < -7.5:
+            continue
+        score = -L[t_o + 1]  # prefer a clear break at step 3
         if best is None or score > best[0]:
             best = (score, x, L, lp, t_o)
     _, x, L, lp, t_o = best

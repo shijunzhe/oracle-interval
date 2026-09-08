@@ -248,6 +248,34 @@ def s_f():
         print(f"S-F {r['person']:>8} strength {r['strength']:>6}: missed alone {100*r['none_missed']:.1f}% → relieved {100*r['relieved_missed']:.1f}%  (calibrated {100*r['calibrated_missed']:.1f}%)")
 
 
+# ---------------------------------------------------------------- S-N: two controls (review, 2026-09-08)
+def s_n():
+    """S-N: two controls asked for in review.  (i) 'blind wait': the two imposed steps of
+    the main text, but no observation arrives during them, so the wait carries time and
+    cost and no evidence.  (ii) 'protection both ways, no draw': the relief of theta = 0.9
+    applied to both extra costs at once, for everyone, with no verdict, which is what the
+    second rule of Section 8 asks an institution to do; with and without the interval.
+    Same seed as Table 2's supplementary companions."""
+    th = 0.9
+    rows = []
+    for P in iv.PEOPLE:
+        both = iv.Person(gamma=P.gamma, c_anx=P.c_anx * (1 - th), r_blame=P.r_blame * (1 - th), label=P.label)
+        cells = [
+            ("own judgement", iv.simulate(P, "none", n=N, seed=23)),
+            ("interval only", iv.simulate(P, "forced_wait", n=N, seed=23, k=3)),
+            ("blind wait", iv.simulate(P, "blind_wait", n=N, seed=23, k=3)),
+            ("protection both ways, no draw", iv.simulate(both, "none", n=N, seed=23)),
+            ("protection both ways + interval", iv.simulate(both, "forced_wait", n=N, seed=23, k=3)),
+            ("the procedure", iv.simulate(P, "oracle", n=N, seed=23, k=2, p=0.25, theta=th)),
+        ]
+        for name, r in cells:
+            rows.append(dict(person=P.label, setting=name, payoff=r.payoff, avoidable=r.avoidable,
+                             missed=r.missed, steps=r.steps))
+    write_csv(os.path.join(RES, "sN_controls.csv"), rows)
+    for r in rows:
+        print(f"S-N {r['person']:>13} {r['setting']:>32}: payoff {r['payoff']:5.2f} avoidable {100*r['avoidable']:.2f}% missed {100*r['missed']:.1f}% steps {r['steps']:.2f}")
+
+
 # ---------------------------------------------------------------- robustness table
 def robustness():
     rows = []
@@ -276,5 +304,5 @@ def robustness():
 
 
 if __name__ == "__main__":
-    s_a(); s_b(); s_w(); s_d(); s_e(); s_f(); s_g(); s_h(); s_m(); robustness()
+    s_a(); s_b(); s_w(); s_d(); s_e(); s_f(); s_g(); s_h(); s_m(); s_n(); robustness()
     print("done")
