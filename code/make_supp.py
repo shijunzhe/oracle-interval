@@ -220,7 +220,7 @@ def s_m():
 def s_f():
     rows = []
     cal = iv.simulate(iv.CALIBRATED, "none", n=N, seed=51)
-    for c_anx in (0.5, 1.0, 2.0, 4.0):
+    for c_anx in (0.5, 1.0, 1.5, 2.0, 4.0):
         P = iv.Person(c_anx=c_anx, label="anxious")
         none = iv.simulate(P, "none", n=N, seed=51)
         _, _, wait = iv.simulate(P, "verdict", n=N, seed=51, theta=iv.THETA, split=True)

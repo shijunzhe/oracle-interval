@@ -88,10 +88,10 @@ CALIBRATED = Person()
 # Re-anchored 2026-09-08 (see the parameter table in the paper): gamma from the
 # overprecision literature (90% intervals hit 30-60%: gamma 4-6; 80% intervals hit
 # 62-67%: gamma about 2; we take 4), C_anx from the present-bias meta-analysis
-# (beta 0.66 for non-monetary rewards = C_anx 2 at even odds), R_blame from the
+# (beta 0.75 [0.64, 0.86] for non-monetary rewards in the published meta-analysis; C_anx 1.5 = beta 0.69 at even odds), R_blame from the
 # action/omission asymmetry (about 2x) and delegation punishment (3.5x): 200 = 3x.
 GAMMA_OVER = 4.0
-C_ANX = 2.0
+C_ANX = 1.5
 R_BLAME = 200.0
 THETA = 0.7        # relief strength: delegation cut punishment by 72% (Bartling & Fischbacher 2012)
 AGENT_GAMMA = 4.0  # LLM verbalised confidence ~90% at 57-68% accuracy (Xiong et al. 2024): gamma 4-9
