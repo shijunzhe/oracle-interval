@@ -46,7 +46,7 @@ def s_a():
     for rok, rbad, q, c in grid:
         setp(R_OK=rok, R_BAD=rbad, Q=q, C=c)
         own = [iv.simulate(P, "none", n=N, seed=41, sigma=iv.SIGMA) for P in iv.PEOPLE]
-        proc = [iv.simulate(P, "oracle", n=N, seed=41, sigma=iv.SIGMA, k=2, theta=0.9) for P in iv.PEOPLE]
+        proc = [iv.simulate(P, "oracle", n=N, seed=41, sigma=iv.SIGMA, k=2, theta=iv.THETA) for P in iv.PEOPLE]
         ratio = abs(c) / abs(rbad)
         rows.append(dict(R_OK=rok, R_BAD=rbad, Q=q, C=c, step_over_catastrophe=ratio,
                          own_payoff=pop_mean(own, "payoff"), proc_payoff=pop_mean(proc, "payoff"),
@@ -75,7 +75,7 @@ def s_b():
     rows = []
     ps = [0.0, 0.25, 0.5, 0.75, 1.0]
     for p in ps:
-        res = {P.label: iv.simulate(P, "verdict", n=N, seed=43, p=p, theta=0.9) for P in iv.PEOPLE}
+        res = {P.label: iv.simulate(P, "verdict", n=N, seed=43, p=p, theta=iv.THETA) for P in iv.PEOPLE}
         rows.append(dict(p=p, **{f"payoff_{k}": v.payoff for k, v in res.items()}, **{f"missed_{k}": v.missed for k, v in res.items()},
                          pop_payoff=np.mean([v.payoff for v in res.values()]), pop_missed=np.mean([v.missed for v in res.values()])))
     write_csv(os.path.join(RES, "sB_p.csv"), rows)
@@ -95,9 +95,9 @@ def s_w():
     rows = []
     for P in (iv.ANXIOUS, iv.FEARFUL):
         none = iv.simulate(P, "none", n=N, seed=45)
-        _, go, wait = iv.simulate(P, "verdict", n=N, seed=45, theta=0.9, split=True)
-        for lbl, r, relief in (("none", none, 0.0), ("drew wait (θ=.9)", wait, 0.9 if P is iv.ANXIOUS else 0.0),
-                               ("drew go (θ=.9)", go, 0.9 if P is iv.FEARFUL else 0.0)):
+        _, go, wait = iv.simulate(P, "verdict", n=N, seed=45, theta=iv.THETA, split=True)
+        for lbl, r, relief in (("none", none, 0.0), ("drew wait (θ=relief)", wait, iv.THETA if P is iv.ANXIOUS else 0.0),
+                               ("drew go (θ=relief)", go, iv.THETA if P is iv.FEARFUL else 0.0)):
             anx = P.c_anx * (1 - relief) * r.steps
             blame = P.r_blame * (1 - relief) * r.wrong
             rows.append(dict(person=P.label, condition=lbl, steps=r.steps, anxiety_endured=anx, expected_blame=blame,
@@ -110,7 +110,7 @@ def s_w():
 # ---------------------------------------------------------------- S-D theta curve
 def s_d():
     rows = []
-    ths = [0.0, 0.25, 0.5, 0.75, 0.9, 1.0]
+    ths = [0.0, 0.25, 0.5, 0.7, 0.9, 1.0]
     for th in ths:
         _, _, an_wait = iv.simulate(iv.ANXIOUS, "verdict", n=N, seed=47, theta=th, split=True)
         _, fe_go, _ = iv.simulate(iv.FEARFUL, "verdict", n=N, seed=47, theta=th, split=True)
@@ -137,7 +137,7 @@ def s_e():
     rows = []
     cal = iv.simulate(iv.CALIBRATED, "none", n=N, seed=49)
     up_cal, _ = iv.thresholds_for(iv.CALIBRATED)
-    for g in (1.0, 1.5, 2.0, 3.0):
+    for g in (1.0, 2.0, 4.0, 6.0):
         P = iv.Person(gamma=g)
         up_own, _ = iv.thresholds_for(P)
         f_star = float(g * up_cal[1] / up_own[1])
@@ -158,7 +158,7 @@ def s_e():
 # ---------------------------------------------------------------- S-G the verdict read as evidence
 def s_g():
     """The consulter also treats the verdict as evidence about the world: perceived
-    log-odds shift by +delta ('go') or -delta ('wait').  Random verdict, theta=0.9, p=0.25.
+    log-odds shift by +delta ('go') or -delta ('wait').  Random verdict, theta=iv.THETA, p=0.25.
     Split by the verdict drawn; the same person alone is summarised on the same episode
     subsets (common random numbers), so go_payoff - go_own_payoff is a paired difference."""
     rows = []
@@ -169,7 +169,7 @@ def s_g():
         own_d = iv._run_core(th, X, suc, iv.SIGMA, P, up0, lo0, up0, lo0, np.ones(N, bool))
         own, own_go, own_wt = iv._summarise(own_d), iv._summarise(own_d, go_mask), iv._summarise(own_d, ~go_mask)
         for d in (0.0, 0.5, 1.0, 1.5, 2.0):
-            r, rg, rw = iv.simulate(P, "verdict", n=N, seed=23, theta=0.9, p=0.25, delta=d, split=True)
+            r, rg, rw = iv.simulate(P, "verdict", n=N, seed=23, theta=iv.THETA, p=0.25, delta=d, split=True)
             assert rg.n == own_go.n
             rows.append(dict(person=P.label, delta=d, own_payoff=own.payoff, own_avoidable=own.avoidable, own_missed=own.missed,
                              payoff=r.payoff, avoidable=r.avoidable, missed=r.missed,
@@ -184,14 +184,14 @@ def s_h():
     """Mirror verdict (says what the person's own leaning after k=2 observations says)
     against two random verdicts drawn at the same step: one at p=0.25 as in the main text,
     one at p equal to the mirror's own share of 'go' verdicts (the matched control), all
-    with relief theta=0.9 and the evidence channel delta in {0, 1}."""
+    with relief theta=iv.THETA and the evidence channel delta in {0, 1}."""
     rows = []
     for P in iv.PEOPLE:
         for d in (0.0, 1.0):
-            mir, mgo, _ = iv.simulate(P, "mirror", n=N, seed=23, k=2, theta=0.9, delta=d, split=True)
+            mir, mgo, _ = iv.simulate(P, "mirror", n=N, seed=23, k=2, theta=iv.THETA, delta=d, split=True)
             share = mgo.n / N
-            rnd = iv.simulate(P, "oracle", n=N, seed=23, k=2, theta=0.9, p=0.25, delta=d)
-            rnm = iv.simulate(P, "oracle", n=N, seed=23, k=2, theta=0.9, p=share, delta=d)
+            rnd = iv.simulate(P, "oracle", n=N, seed=23, k=2, theta=iv.THETA, p=0.25, delta=d)
+            rnm = iv.simulate(P, "oracle", n=N, seed=23, k=2, theta=iv.THETA, p=share, delta=d)
             rows.append(dict(person=P.label, delta=d, mirror_go_share=share,
                              random_p025_payoff=rnd.payoff, random_p025_avoidable=rnd.avoidable, random_p025_missed=rnd.missed,
                              random_matched_payoff=rnm.payoff, random_matched_avoidable=rnm.avoidable, random_matched_missed=rnm.missed,
@@ -202,13 +202,13 @@ def s_h():
 
 # ---------------------------------------------------------------- S-M moral hazard: two faults in one person
 def s_m():
-    """gamma in {1,2} x R_blame in {0,100} under the random verdict theta=0.9, split by verdict."""
+    """gamma in {1,GAMMA_OVER} x R_blame in {0,R_BLAME} under the random verdict theta=iv.THETA, split by verdict."""
     rows = []
-    for g in (1.0, 2.0):
-        for rb in (0.0, 100.0):
+    for g in (1.0, iv.GAMMA_OVER):
+        for rb in (0.0, iv.R_BLAME):
             P = iv.Person(gamma=g, r_blame=rb, label=f"gamma{g:g}_blame{rb:g}")
             own = iv.simulate(P, "none", n=N, seed=23)
-            _, go, wt = iv.simulate(P, "verdict", n=N, seed=23, theta=0.9, p=0.25, split=True)
+            _, go, wt = iv.simulate(P, "verdict", n=N, seed=23, theta=iv.THETA, p=0.25, split=True)
             rows.append(dict(gamma=g, r_blame=rb, own_payoff=own.payoff, own_avoidable=own.avoidable, own_missed=own.missed,
                              go_payoff=go.payoff, go_avoidable=go.avoidable, go_missed=go.missed,
                              wait_payoff=wt.payoff, wait_avoidable=wt.avoidable, wait_missed=wt.missed))
@@ -220,15 +220,15 @@ def s_m():
 def s_f():
     rows = []
     cal = iv.simulate(iv.CALIBRATED, "none", n=N, seed=51)
-    for c_anx in (0.25, 0.5, 1.0, 2.0):
+    for c_anx in (0.5, 1.0, 2.0, 4.0):
         P = iv.Person(c_anx=c_anx, label="anxious")
         none = iv.simulate(P, "none", n=N, seed=51)
-        _, _, wait = iv.simulate(P, "verdict", n=N, seed=51, theta=0.9, split=True)
+        _, _, wait = iv.simulate(P, "verdict", n=N, seed=51, theta=iv.THETA, split=True)
         rows.append(dict(person="anxious", strength=c_anx, none_missed=none.missed, relieved_missed=wait.missed, calibrated_missed=cal.missed))
-    for rb in (25, 50, 100, 200):
+    for rb in (50, 100, 200, 400):
         P = iv.Person(r_blame=rb, label="fearful")
         none = iv.simulate(P, "none", n=N, seed=51)
-        _, go, _ = iv.simulate(P, "verdict", n=N, seed=51, theta=0.9, split=True)
+        _, go, _ = iv.simulate(P, "verdict", n=N, seed=51, theta=iv.THETA, split=True)
         rows.append(dict(person="fearful", strength=rb, none_missed=none.missed, relieved_missed=go.missed, calibrated_missed=cal.missed))
     write_csv(os.path.join(RES, "sF_pressure.csv"), rows)
     fig, axes = plt.subplots(1, 2, figsize=(7.4, 3.0), dpi=200, sharey=True)
@@ -256,7 +256,7 @@ def s_n():
     applied to both extra costs at once, for everyone, with no verdict, which is what the
     second rule of Section 8 asks an institution to do; with and without the interval.
     Same seed as Table 2's supplementary companions."""
-    th = 0.9
+    th = iv.THETA
     rows = []
     for P in iv.PEOPLE:
         both = iv.Person(gamma=P.gamma, c_anx=P.c_anx * (1 - th), r_blame=P.r_blame * (1 - th), label=P.label)
@@ -276,6 +276,19 @@ def s_n():
         print(f"S-N {r['person']:>13} {r['setting']:>32}: payoff {r['payoff']:5.2f} avoidable {100*r['avoidable']:.2f}% missed {100*r['missed']:.1f}% steps {r['steps']:.2f}")
 
 
+# ---------------------------------------------------------------- S-P: how overconfident the agent is (Table S9)
+def s_p():
+    """Agent-timed decision with the agent's gamma in {1, 2, 4, 6}, four persons (seed 31 as Table 3)."""
+    rows = []
+    for ga in (1.0, 2.0, 4.0, 6.0):
+        for P in iv.PEOPLE:
+            own = iv.simulate(P, "none", n=N, seed=31)
+            r = iv.simulate_prompt(P, agent_gamma=ga, n=N, seed=31)
+            rows.append(dict(agent_gamma=ga, person=P.label, own_payoff=own.payoff, payoff=r.payoff, avoidable=r.avoidable, missed=r.missed))
+            print(f"S-P agent γ={ga:g} {P.label:13s}: own {own.payoff:.2f} -> agent-timed {r.payoff:.2f}  avoidable {100*r.avoidable:.2f}%  missed {100*r.missed:.1f}%")
+    write_csv(os.path.join(RES, "sP_agent.csv"), rows)
+
+
 # ---------------------------------------------------------------- robustness table
 def robustness():
     rows = []
@@ -286,10 +299,16 @@ def robustness():
         for P in iv.PEOPLE:
             out[P.label] = iv.simulate(P, "none", n=N, seed=53, sigma=sig)
         ov2 = iv.simulate(iv.OVERCONFIDENT, "forced_wait", n=N, seed=53, sigma=sig, k=3)
-        _, _, an_w = iv.simulate(iv.ANXIOUS, "verdict", n=N, seed=53, sigma=sig, theta=0.9, split=True)
-        _, fe_g, _ = iv.simulate(iv.FEARFUL, "verdict", n=N, seed=53, sigma=sig, theta=0.9, split=True)
+        _, _, an_w = iv.simulate(iv.ANXIOUS, "verdict", n=N, seed=53, sigma=sig, theta=iv.THETA, split=True)
+        _, fe_g, _ = iv.simulate(iv.FEARFUL, "verdict", n=N, seed=53, sigma=sig, theta=iv.THETA, split=True)
         la = iv.simulate_lookahead(iv.CALIBRATED, n=N, seed=53, sigma=sig)
+        la2 = iv.simulate_lookahead(iv.CALIBRATED, n=N, seed=53, sigma=sig, k_wait=3)
+        lao = iv.simulate_lookahead(iv.OVERCONFIDENT, n=N, seed=53, sigma=sig)
+        lao2 = iv.simulate_lookahead(iv.OVERCONFIDENT, n=N, seed=53, sigma=sig, k_wait=3)
         rows.append(dict(variant=tag, cal_payoff=out["calibrated"].payoff, lookahead_payoff=la.payoff,
+                         lookahead_wait2_payoff=la2.payoff, overconf_lookahead_payoff=lao.payoff,
+                         overconf_lookahead_wait2_payoff=lao2.payoff, overconf_payoff=out["overconfident"].payoff,
+                         overconf_wait2_payoff=ov2.payoff,
                          overconf_avoidable=out["overconfident"].avoidable, overconf_avoidable_wait2=ov2.avoidable,
                          anx_missed=out["anxious"].missed, anx_missed_wait_relief=an_w.missed,
                          fear_missed=out["fearful"].missed, fear_missed_go_relief=fe_g.missed, cal_missed=out["calibrated"].missed))
@@ -304,5 +323,5 @@ def robustness():
 
 
 if __name__ == "__main__":
-    s_a(); s_b(); s_w(); s_d(); s_e(); s_f(); s_g(); s_h(); s_m(); s_n(); robustness()
+    s_a(); s_b(); s_w(); s_d(); s_e(); s_f(); s_g(); s_h(); s_m(); s_n(); s_p(); robustness()
     print("done")

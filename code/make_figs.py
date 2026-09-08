@@ -48,7 +48,7 @@ def fig1():
     for trial in range(20000):
         x = -1 + iv.SIGMA * rng.standard_normal(8)          # bad state
         L = np.cumsum(2 * x / iv.SIGMA ** 2)
-        lp = 2.0 * L
+        lp = iv.OVERCONFIDENT.gamma * L
         t_o = np.argmax(lp >= up_o[1]) + 1 if (lp >= up_o[1]).any() else None
         # The overconfident person must act at step 2, inside the two imposed steps of
         # Fig. 2 (forced_wait k=3: no decision at steps 1 and 2, first decision at step 3),
@@ -70,7 +70,7 @@ def fig1():
     steps = np.arange(1, len(L) + 1)
     b_true, b_perc = iv.sigmoid(L), iv.sigmoid(lp)
     thr_c = up_c[1]                 # calibrated bar, in true-evidence units
-    thr_o = up_o[1] / 2.0           # overconfident bar, in true-evidence units (he counts evidence twice)
+    thr_o = up_o[1] / iv.OVERCONFIDENT.gamma   # overconfident bar, in true-evidence units
 
     fig, ax = plt.subplots(figsize=(5.4, 3.3), dpi=200)
     ax.axhline(0, color=INK2, lw=0.6)
@@ -98,7 +98,7 @@ def fig1():
 
 # ================================================================ Fig 2: waiting helps only the miscalibrated
 def fig2():
-    gammas = [1.0, 1.5, 2.0, 3.0]; ks = list(range(0, 6))
+    gammas = [1.0, 2.0, 4.0, 6.0]; ks = list(range(0, 6))
     rows = []
     for g in gammas:
         P = iv.Person(gamma=g, label=f"gamma={g}")
@@ -106,8 +106,8 @@ def fig2():
             r = iv.simulate(P, "forced_wait", n=N, k=k + 1, seed=11)
             rows.append(r.row(gamma=g, k=k))
     write_csv(os.path.join(RES, "fig2.csv"), rows)
-    cols = {1.0: BLUE, 1.5: AQUA, 2.0: ORANGE, 3.0: YELLOW}
-    names = {1.0: "calibrated (γ=1)", 1.5: "mildly overconfident (γ=1.5)", 2.0: "overconfident (γ=2)", 3.0: "very overconfident (γ=3)"}
+    cols = {1.0: BLUE, 2.0: AQUA, 4.0: ORANGE, 6.0: YELLOW}
+    names = {1.0: "calibrated (γ=1)", 2.0: "mildly overconfident (γ=2)", 4.0: "overconfident (γ=4)", 6.0: "very overconfident (γ=6)"}
     fig, axes = plt.subplots(1, 3, figsize=(9.2, 3.0), dpi=200)
     for g in gammas:
         sub = [r for r in rows if r["gamma"] == g]
@@ -122,7 +122,7 @@ def fig2():
                 ax.fill_between(k, y - e, y + e, color=cols[g], alpha=.15, lw=0)
                 ax.plot(k, y, color=cols[g], lw=2, marker="o", ms=4, label=names[g])
     # luck floor for gamma=2: failures in the good state
-    sub2 = [r for r in rows if r["gamma"] == 2.0]
+    sub2 = [r for r in rows if r["gamma"] == iv.GAMMA_OVER]
     floor = [100 * (r["wrong"] - r["avoidable"]) for r in sub2]
     axes[0].plot(ks, floor, color=ORANGE, lw=1.2, ls="--")
     axes[0].text(ks[-1], floor[-1] + 0.08, "γ=2: failures of well-founded\nactions (luck) — waiting cannot\nremove these", ha="right", va="bottom", fontsize=6.8, color=ORANGE)
@@ -144,7 +144,7 @@ def fig3():
     out = {}
     for P in (iv.ANXIOUS, iv.FEARFUL, iv.CALIBRATED):
         r_none = iv.simulate(P, "none", n=N, seed=23); rows.append(r_none.row(person=P.label, device="none", verdict="all"))
-        for th in (0.0, 0.9):
+        for th in (0.0, iv.THETA):
             allr, gor, wtr = iv.simulate(P, "verdict", n=N, seed=23, theta=th, p=P_GO, split=True)
             rows.append(allr.row(person=P.label, device=f"verdict theta={th}", verdict="all"))
             rows.append(gor.row(person=P.label, device=f"verdict theta={th}", verdict="go"))
@@ -157,7 +157,7 @@ def fig3():
     cal = out[("calibrated", "none")]
     for ax, P, title in zip(axes, (iv.ANXIOUS, iv.FEARFUL),
                             ("A  the anxious person (waiting hurts)", "B  the fearful person (failure brings blame)")):
-        none = out[(P.label, "none")]; a0 = out[(P.label, 0.0)][0]; a9, g9, w9 = out[(P.label, 0.9)]
+        none = out[(P.label, "none")]; a0 = out[(P.label, 0.0)][0]; a9, g9, w9 = out[(P.label, iv.THETA)]
         vals = [none.missed, a0.missed, w9.missed, g9.missed]; ns = [none.n, a0.n, w9.n, g9.n]
         xs = [0, 1, 2.0, 2.6]; colors = ["#9a9891", "#c3c2b7", BLUE, ORANGE]
         for x, v, c, nn in zip(xs, vals, colors, ns):
@@ -168,7 +168,7 @@ def fig3():
         ax.text(3.0, 100 * cal.missed, "calibrated\nperson", fontsize=7, color=INK2, va="center", ha="left")
         ax.set_xticks([0, 1, 2.0, 2.6])
         ax.set_xticklabels(["no\ndevice", "random verdict,\nno relief\n(θ = 0)", "drew\n'wait'", "drew\n'go'"], fontsize=7.5)
-        ax.text(2.3, -3.6, "random verdict with relief (θ = 0.9)", ha="center", va="top", fontsize=7.5, color=INK,
+        ax.text(2.3, -3.6, f"random verdict with relief (θ = {iv.THETA:g})", ha="center", va="top", fontsize=7.5, color=INK,
                 transform=ax.transData, clip_on=False)
         ax.plot([1.72, 2.88], [-3.3, -3.3], color=INK2, lw=0.8, clip_on=False)
         ax.set_xlim(-0.55, 3.6); ax.set_ylim(0, 9)
@@ -177,7 +177,7 @@ def fig3():
     axes[0].set_ylabel("% of decisions: did not act, state was good")
     fig.tight_layout(); fig.savefig(os.path.join(FIGS, "fig3_two_sided.png")); plt.close(fig)
     for P in (iv.ANXIOUS, iv.FEARFUL):
-        none = out[(P.label, "none")]; a9, g9, w9 = out[(P.label, 0.9)]
+        none = out[(P.label, "none")]; a9, g9, w9 = out[(P.label, iv.THETA)]
         print(f"fig3 {P.label}: missed none {100*none.missed:.1f}% | θ=.9 wait {100*w9.missed:.1f}% go {100*g9.missed:.1f}% | calibrated {100*out[('calibrated','none')].missed:.1f}%")
 
 
@@ -206,11 +206,11 @@ def _episode_arrays(P, device, c, p):
         d = iv._run_core(th, X, suc, iv.SIGMA, P, up0, lo0, up0, lo0, ones, k_wait=3)
     elif device in ("procedure", "relief only"):
         go = vd.random(N) < p
-        ug, lg = iv.thresholds_for(P, relief_go=0.9)
-        uw, lw = iv.thresholds_for(P, relief_wait=0.9)
+        ug, lg = iv.thresholds_for(P, relief_go=iv.THETA)
+        uw, lw = iv.thresholds_for(P, relief_wait=iv.THETA)
         d = iv._run_core(th, X, suc, iv.SIGMA, P, ug, lg, uw, lw, go, k_wait=(3 if device == "procedure" else 0))
     elif device == "agent-timed prompt":
-        agent = iv.Person(gamma=2.0, label="agent")
+        agent = iv.Person(gamma=iv.AGENT_GAMMA, label="agent")
         up_a, lo_a = iv.thresholds_for(agent)
         L = np.zeros(N); done = np.zeros(N, bool); acted = np.zeros(N, bool); steps = np.zeros(N, int)
         for t in range(1, iv.H + 1):
@@ -218,7 +218,7 @@ def _episode_arrays(P, device, c, p):
             x = th + iv.SIGMA * X[:, t - 1]
             L = np.where(live, L + 2.0 * x / iv.SIGMA ** 2, L)
             steps += live
-            la = 2.0 * L
+            la = agent.gamma * L
             stop = live & ((la >= up_a[t]) | (la <= lo_a[t]) | (t == iv.H))
             lp = P.gamma * L
             ps = iv.p_success(iv.sigmoid(lp))
@@ -279,7 +279,7 @@ def table1(p=0.25, suffix=""):
     verdict says "go" (main text 0.25: one line in four changes under either casting
     method; p = 0.5 reported in the Supplement as table1_p05.csv).  Columns: act at once
     (no evidence), never act, own judgement, the whole procedure (interval k=2 +
-    random verdict theta=0.9), and its two parts.  Two stakes ratios: a step of
+    random verdict theta=iv.THETA), and its two parts.  Two stakes ratios: a step of
     waiting = 1% and 0.5% of the catastrophe."""
     rows = []
     for c in (-1.0, -0.5):
@@ -287,12 +287,12 @@ def table1(p=0.25, suffix=""):
         cells = {}
         for P in iv.PEOPLE:
             cells[(P.label, "own")] = iv.simulate(P, "none", n=N, seed=31)
-            cells[(P.label, "procedure")] = iv.simulate(P, "oracle", n=N, seed=31, k=2, theta=0.9, p=p)
+            cells[(P.label, "procedure")] = iv.simulate(P, "oracle", n=N, seed=31, k=2, theta=iv.THETA, p=p)
             # forced_wait's k is the first step at which a decision is allowed, so k=3 is
             # two imposed steps beyond the first observation: the same interval as the
             # procedure's oracle(k=2), which uses k_wait = k + 1 (see interval.simulate).
             cells[(P.label, "interval only")] = iv.simulate(P, "forced_wait", n=N, seed=31, k=3)
-            cells[(P.label, "relief only")] = iv.simulate(P, "verdict", n=N, seed=31, theta=0.9, p=p)
+            cells[(P.label, "relief only")] = iv.simulate(P, "verdict", n=N, seed=31, theta=iv.THETA, p=p)
         act_now_pay = 0.5 * (iv.Q * iv.R_OK + (1 - iv.Q) * iv.R_BAD) + 0.5 * ((1 - iv.Q) * iv.R_OK + iv.Q * iv.R_BAD) + c
         for col in ("own", "procedure", "interval only", "relief only"):
             for P in iv.PEOPLE:
@@ -321,7 +321,7 @@ def table1(p=0.25, suffix=""):
     # stops when its own thresholds are crossed; the person must then act or give up.
     for c in (-1.0, -0.5):
         old_c = iv.C; iv.C = c; iv.dp_thresholds.cache_clear()
-        res = [iv.simulate_prompt(P, agent_gamma=2.0, n=N, seed=31) for P in iv.PEOPLE]
+        res = [iv.simulate_prompt(P, agent_gamma=iv.AGENT_GAMMA, n=N, seed=31) for P in iv.PEOPLE]
         for P, r in zip(iv.PEOPLE, res):
             rows.append(dict(step_cost=c, person=P.label, device="agent-timed prompt", payoff=r.payoff,
                              avoidable=r.avoidable, missed=r.missed, wrong=r.wrong, steps=r.steps))

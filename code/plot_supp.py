@@ -7,6 +7,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from plot_figs import read, panel, save, BLUE, ORANGE, INK, INK2, FIGS
+import interval as iv
 
 CAL_MISSED = None  # the calibrated person's missed rate, read from the p-sweep file (p is irrelevant for them)
 
@@ -72,7 +73,7 @@ def s4_pressure():
         sub = sorted([r for r in rows if r["person"] == person], key=lambda r: r["strength"])
         xs = [r["strength"] for r in sub]
         ax.plot(xs, [100 * r["none_missed"] for r in sub], color=col, marker="o", lw=2, label=f"{person} person, alone")
-        ax.plot(xs, [100 * r["relieved_missed"] for r in sub], color=col, marker="o", lw=2, ls="--", label=f"{person} person after the relieving verdict (θ = 0.9)")
+        ax.plot(xs, [100 * r["relieved_missed"] for r in sub], color=col, marker="o", lw=2, ls="--", label=f"{person} person after the relieving verdict (θ = {iv.THETA:g})")
         ax.axhline(100 * sub[0]["calibrated_missed"], color=INK2, ls=":", lw=1, label="calibrated person")
         ax.set_xscale("log"); ax.set_xticks(xs); ax.set_xticklabels([f"{x:g}" for x in xs]); ax.minorticks_off()
         ax.set_xlabel(xlabel); ax.legend(frameon=False, fontsize=7, loc="upper left", handlelength=3.2, markerscale=0.7)

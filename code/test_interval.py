@@ -185,9 +185,15 @@ def test_go_relief_hurts_a_person_who_is_also_overconfident():
 def test_agent_timed_prompt_hands_the_calibrated_person_the_agent_error_rate():
     rc = iv.simulate(iv.CALIBRATED, "none", n=N)
     ro = iv.simulate(iv.OVERCONFIDENT, "none", n=N)
-    rp = iv.simulate_prompt(iv.CALIBRATED, agent_gamma=2.0, n=N)
-    assert abs(rp.avoidable - ro.avoidable) < 3 * se_diff(rp.avoidable, ro.avoidable)
-    assert rp.avoidable > 3 * rc.avoidable
+    rp = iv.simulate_prompt(iv.CALIBRATED, agent_gamma=iv.GAMMA_OVER, n=N)
+    # the agent stops before the evidence justifies acting for a calibrated person, who must
+    # then choose between a bad bet and giving up: errors of both kinds rise and payoff falls
+    assert rp.avoidable > 3 * rc.avoidable and rp.missed > 3 * rc.missed
+    assert rp.payoff < rc.payoff - 1.0
+    # with a mildly overconfident agent (gamma 2) the calibrated person inherits its record
+    ro2 = iv.simulate(iv.Person(gamma=2.0), "none", n=N)
+    rp2 = iv.simulate_prompt(iv.CALIBRATED, agent_gamma=2.0, n=N)
+    assert abs(rp2.avoidable - ro2.avoidable) < 3 * se_diff(rp2.avoidable, ro2.avoidable)
     rp1 = iv.simulate_prompt(iv.CALIBRATED, agent_gamma=1.0, n=N)
     assert abs(rp1.payoff - rc.payoff) < 3 * np.hypot(rp1.payoff_se, rc.payoff_se)
 

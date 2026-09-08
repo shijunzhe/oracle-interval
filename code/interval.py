@@ -85,9 +85,19 @@ class Person:
 
 
 CALIBRATED = Person()
-OVERCONFIDENT = Person(gamma=2.0, label="overconfident")
-ANXIOUS = Person(c_anx=1.0, label="anxious")
-FEARFUL = Person(r_blame=100.0, label="fearful")
+# Re-anchored 2026-09-08 (see the parameter table in the paper): gamma from the
+# overprecision literature (90% intervals hit 30-60%: gamma 4-6; 80% intervals hit
+# 62-67%: gamma about 2; we take 4), C_anx from the present-bias meta-analysis
+# (beta 0.66 for non-monetary rewards = C_anx 2 at even odds), R_blame from the
+# action/omission asymmetry (about 2x) and delegation punishment (3.5x): 200 = 3x.
+GAMMA_OVER = 4.0
+C_ANX = 2.0
+R_BLAME = 200.0
+THETA = 0.7        # relief strength: delegation cut punishment by 72% (Bartling & Fischbacher 2012)
+AGENT_GAMMA = 4.0  # LLM verbalised confidence ~90% at 57-68% accuracy (Xiong et al. 2024): gamma 4-9
+OVERCONFIDENT = Person(gamma=GAMMA_OVER, label="overconfident")
+ANXIOUS = Person(c_anx=C_ANX, label="anxious")
+FEARFUL = Person(r_blame=R_BLAME, label="fearful")
 PEOPLE = (CALIBRATED, OVERCONFIDENT, ANXIOUS, FEARFUL)
 
 
@@ -319,13 +329,14 @@ def simulate(person: Person, device="none", n=40_000, sigma=None, seed=0,
     return _summarise(d)
 
 
-def simulate_prompt(person: Person, agent_gamma=2.0, n=40_000, sigma=None, seed=0) -> Result:
+def simulate_prompt(person: Person, agent_gamma=None, n=40_000, sigma=None, seed=0) -> Result:
     """Agent-timed prompt.  An agent reading evidence with agent_gamma (calibrated costs)
     runs the DP and stops when its own perceived log-odds cross its thresholds.  At that
     step the person must act or give up on the evidence in hand: act iff the perceived
     value of acting, with the person's own gamma and R_blame, is positive.  No waiting."""
     sigma = SIGMA if sigma is None else sigma
     th, X, _, suc = _streams(seed, n)
+    agent_gamma = AGENT_GAMMA if agent_gamma is None else agent_gamma
     agent = Person(gamma=agent_gamma, label="agent")
     up_a, lo_a = thresholds_for(agent, sigma)
     L = np.zeros(n); done = np.zeros(n, bool); acted = np.zeros(n, bool); steps = np.zeros(n, int)
@@ -348,7 +359,9 @@ def simulate_prompt(person: Person, agent_gamma=2.0, n=40_000, sigma=None, seed=
     return _summarise(d)
 
 
-def simulate_lookahead(person: Person, n=40_000, sigma=None, seed=0) -> Result:
+def simulate_lookahead(person: Person, n=40_000, sigma=None, seed=0, k_wait=0) -> Result:
+    """A rule-of-thumb decider: one-step lookahead instead of the full DP.  k_wait as in
+    forced_wait (no decision before step k_wait)."""
     sigma = SIGMA if sigma is None else sigma
     th, X, _, suc = _streams(seed, n)
     L = np.zeros(n); done = np.zeros(n, bool); acted = np.zeros(n, bool); steps = np.zeros(n, int)
@@ -361,6 +374,8 @@ def simulate_lookahead(person: Person, n=40_000, sigma=None, seed=0) -> Result:
         steps += live
         lp = person.gamma * L
         act, quit_ = lookahead_decision(lp, person, sigma)
+        if t < k_wait:
+            act[:] = False; quit_[:] = False
         if t == H:
             ps = p_success(sigmoid(lp))
             act = ps * R_OK + (1 - ps) * (R_BAD - person.r_blame) > 0
@@ -390,7 +405,7 @@ if __name__ == "__main__":
     for P in (ANXIOUS, FEARFUL, CALIBRATED):
         print(f"  {P.label}")
         print(f"    {'none':>14}: {simulate(P, 'none', n=n)}")
-        for th in (0.0, 0.9):
+        for th in (0.0, THETA):
             allr, gor, wtr = simulate(P, "verdict", n=n, theta=th, split=True)
             print(f"    {'random θ=%.1f' % th:>14}: {allr}")
             print(f"    {'  got go':>14}: {gor}")
