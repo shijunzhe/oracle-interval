@@ -29,11 +29,11 @@ def s1_stakes():
     ax.scatter(x, [r["calibrated_d_payoff"] for r in rows], color=BLUE, s=34, marker="^", label="calibrated person", zorder=3)
     ax.set_xscale("log"); ticks = [v for v in x if abs(v - 1 / 3) > 1e-3]
     ax.set_xticks(ticks); ax.set_xticklabels([f"{v:g}" for v in ticks]); ax.minorticks_off()
-    ax.set_xlabel("cost of one step of waiting, as % of the catastrophe (log scale)")
-    ax.set_ylabel("payoff of the whole procedure\nminus payoff of own judgement")
-    ax.legend(frameon=False, fontsize=7.5, loc="lower left")
-    ax.set_ylim(min(r["calibrated_d_payoff"] for r in rows) - 0.55, max(r["overconf_d_payoff"] for r in rows) + 0.15)
-    panel(ax, "", "the interval pays when a step of waiting is cheap against the catastrophe")
+    ax.set_xlabel("cost of one step of waiting, as % of the failure loss (log scale)")
+    ax.set_ylabel("payoff of the full procedure\nminus payoff of own judgement")
+    ax.set_ylim(min(r["calibrated_d_payoff"] for r in rows) - 0.55, max(r["overconf_d_payoff"] for r in rows) + 0.6)
+    ax.legend(frameon=False, fontsize=7.5, loc="upper right", bbox_to_anchor=(1.0, 0.86))   # the right-hand middle is empty: keeps the legend off the zero line and the points
+    panel(ax, "", "the full procedure pays more when a step of waiting is cheap against the failure loss")
     save(fig, "supp_S1_stakes")
 
 
