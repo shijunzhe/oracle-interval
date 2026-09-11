@@ -367,7 +367,7 @@ def simulate_prompt(person: Person, agent_gamma=None, n=40_000, sigma=None, seed
 
 
 def simulate_handoff(person: Person, agent_gamma=None, mode="continue", k_required=0,
-                     theta=0.0, n=40_000, sigma=None, seed=0) -> Result:
+                     theta=0.0, n=40_000, sigma=None, seed=0, arrays=False) -> Result:
     """Hand-off comparisons (Table 4).  An agent reading evidence with agent_gamma runs
     the calibrated-cost DP and stops when its own thresholds are crossed, at step t_h.
     The person then continues with the same evidence:
@@ -434,6 +434,8 @@ def simulate_handoff(person: Person, agent_gamma=None, mode="continue", k_requir
     d = dict(pay=np.where(acted, np.where(suc, R_OK, R_BAD), 0.0) + C * steps,
              wrong=acted & ~suc, avoidable=acted & (th < 0), missed=(~acted) & (th > 0), acted=acted,
              steps=steps, t_hand=t_hand)
+    if arrays:
+        return d
     r = _summarise(d)
     r.checks_after = float((steps - t_hand).mean())
     return r
