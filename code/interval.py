@@ -103,10 +103,13 @@ PEOPLE = (CALIBRATED, OVERCONFIDENT, ANXIOUS, FEARFUL)
 
 # ---------------------------------------------------------------- DP policy
 @functools.lru_cache(maxsize=None)
-def dp_thresholds(gamma, c_anx, r_blame, sigma, r_ok=None, r_bad=None, c=None, horizon=None, q=None):
+def dp_thresholds(gamma, c_anx, r_blame, sigma, r_ok=None, r_bad=None, c=None, horizon=None, q=None, act_from=1):
     """Finite-horizon DP on the perceived model.  Returns (upper, lower, values).
     At step t the person acts if perceived log-odds >= upper[t], gives up if
-    <= lower[t], otherwise waits.  Regions are checked to be one-sided."""
+    <= lower[t], otherwise waits.  Regions are checked to be one-sided.
+    act_from > 1: acting is not allowed before step act_from (giving up and waiting
+    are); the policy is re-solved under that constraint (the 'required checks'
+    arrangement of Table 4).  act_from > horizon: acting is never allowed."""
     r_ok = R_OK if r_ok is None else r_ok
     r_bad = R_BAD if r_bad is None else r_bad
     c = C if c is None else c
@@ -119,11 +122,13 @@ def dp_thresholds(gamma, c_anx, r_blame, sigma, r_ok=None, r_bad=None, c=None, h
     step_cost = c - c_anx
     ps = p_success(b, q)
     act_val = ps * r_ok + (1 - ps) * (r_bad - r_blame)
-    stop_val = np.maximum(act_val, 0.0)
+    stop_val_full = np.maximum(act_val, 0.0)
     upper = np.full(horizon + 2, np.inf)
     lower = np.full(horizon + 2, -np.inf)
-    V_next = stop_val.copy()
-    upper[horizon] = l[np.argmax(act_val >= 0)] if (act_val >= 0).any() else np.inf
+    can_act_H = horizon >= act_from
+    V_next = stop_val_full.copy() if can_act_H else np.zeros_like(l)
+    if can_act_H:
+        upper[horizon] = l[np.argmax(act_val >= 0)] if (act_val >= 0).any() else np.inf
     values = {horizon: V_next}
     for t in range(horizon - 1, 0, -1):
         cont = np.zeros_like(l)
@@ -131,10 +136,12 @@ def dp_thresholds(gamma, c_anx, r_blame, sigma, r_ok=None, r_bad=None, c=None, h
             cont += w * (b * np.interp(l + mu_inc * (1.0 + sig_p * z), l, V_next)
                          + (1 - b) * np.interp(l + mu_inc * (-1.0 + sig_p * z), l, V_next))
         cont += step_cost
+        can_act = t >= act_from
+        stop_val = stop_val_full if can_act else np.zeros_like(l)
         stop = stop_val >= cont
         V = np.where(stop, stop_val, cont)
-        act_region = stop & (act_val > 0)
-        quit_region = stop & (act_val <= 0)
+        act_region = stop & (act_val > 0) if can_act else np.zeros_like(stop)
+        quit_region = stop & ((act_val <= 0) if can_act else np.ones_like(stop))
         if act_region.any():
             upper[t] = l[np.argmax(act_region)]
             assert act_region[np.searchsorted(l, upper[t]):].all(), f"non-monotone act region t={t}"
@@ -357,6 +364,79 @@ def simulate_prompt(person: Person, agent_gamma=None, n=40_000, sigma=None, seed
     d = dict(pay=np.where(acted, np.where(suc, R_OK, R_BAD), 0.0) + C * steps,
              wrong=acted & ~suc, avoidable=acted & (th < 0), missed=(~acted) & (th > 0), acted=acted, steps=steps)
     return _summarise(d)
+
+
+def simulate_handoff(person: Person, agent_gamma=None, mode="continue", k_required=0,
+                     theta=0.0, n=40_000, sigma=None, seed=0) -> Result:
+    """Hand-off comparisons (Table 4).  An agent reading evidence with agent_gamma runs
+    the calibrated-cost DP and stops when its own thresholds are crossed, at step t_h.
+    The person then continues with the same evidence:
+      mode='forced'   : act or give up at t_h on the evidence in hand (= simulate_prompt).
+      mode='continue' : the person may act, give up, or pay for further observations,
+                        by their own DP policy from (L, t_h) onward (arrangement A; B with theta).
+      mode='required' : an irreversible action is allowed only after k_required further
+                        observations (from step t_h + k_required); giving up is allowed
+                        at any time; the policy is re-solved under that constraint
+                        (arrangement C; D with theta).
+    theta > 0 relieves both extra costs from the hand-off onward (protection offered
+    to everyone, both ways): C_anx and R_blame are scaled by (1 - theta)."""
+    sigma = SIGMA if sigma is None else sigma
+    th, X, _, suc = _streams(seed, n)
+    agent_gamma = AGENT_GAMMA if agent_gamma is None else agent_gamma
+    agent = Person(gamma=agent_gamma, label="agent")
+    up_a, lo_a = thresholds_for(agent, sigma)
+    # person's policies: one per act_from value T = 1..H+1 (T = H+1: never act)
+    if mode == "required":
+        pol = {T: thresholds_for(person, sigma, relief_wait=theta, relief_go=theta, act_from=T)
+               for T in range(1, H + 2)}
+    else:
+        pol = {1: thresholds_for(person, sigma, relief_wait=theta, relief_go=theta)}
+    UP = np.full((H + 2, H + 2), np.inf); LO = np.full((H + 2, H + 2), -np.inf)
+    for T, (u, lo_) in pol.items():
+        UP[T, :] = u; LO[T, :] = lo_
+    L = np.zeros(n); done = np.zeros(n, bool); acted = np.zeros(n, bool); steps = np.zeros(n, int)
+    handed = np.zeros(n, bool)                 # agent has stopped
+    T_act = np.ones(n, int)                    # per-episode act_from (mode 'required')
+    t_hand = np.zeros(n, int)
+    for t in range(1, H + 1):
+        live = ~done
+        if not live.any():
+            break
+        x = th + sigma * X[:, t - 1]
+        L = np.where(live, L + 2.0 * x / sigma ** 2, L)
+        steps += live
+        # agent phase
+        la = agent_gamma * L
+        new_hand = live & ~handed & ((la >= up_a[t]) | (la <= lo_a[t]) | (t == H))
+        if mode == "required":
+            T_act = np.where(new_hand, np.minimum(t + k_required, H + 1), T_act)
+        t_hand = np.where(new_hand, t, t_hand)
+        handed |= new_hand
+        # person phase (from the hand-off step onward)
+        lp = person.gamma * L
+        if mode == "forced":
+            ps = p_success(sigmoid(lp))
+            act = ps * R_OK + (1 - ps) * (R_BAD - person.r_blame) > 0
+            stop = live & new_hand
+            acted |= stop & act
+            done |= stop
+            continue
+        idx = T_act if mode == "required" else np.ones(n, int)
+        up_t = UP[idx, t]; lo_t = LO[idx, t]
+        act = lp >= up_t
+        quit_ = lp <= lo_t
+        if t == H:
+            act = lp >= up_t
+            quit_ = ~act
+        stop = live & handed & (act | quit_)
+        acted |= stop & act
+        done |= stop
+    d = dict(pay=np.where(acted, np.where(suc, R_OK, R_BAD), 0.0) + C * steps,
+             wrong=acted & ~suc, avoidable=acted & (th < 0), missed=(~acted) & (th > 0), acted=acted,
+             steps=steps, t_hand=t_hand)
+    r = _summarise(d)
+    r.checks_after = float((steps - t_hand).mean())
+    return r
 
 
 def simulate_lookahead(person: Person, n=40_000, sigma=None, seed=0, k_wait=0) -> Result:

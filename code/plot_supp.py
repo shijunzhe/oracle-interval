@@ -83,8 +83,33 @@ def s4_pressure():
     save(fig, "supp_S4_pressure")
 
 
+def s5_handoff():
+    """Supplementary Fig. S5: what the person can do after the agent hands over (Table 4),
+    payoff by arrangement for the five persons and the equal mix of the four."""
+    rows = read("table4_handoff.csv")
+    persons = ["calibrated", "overconfident", "anxious", "fearful", "overconfident and fearful", "population (equal mix)"]
+    labels = ["calibrated", "overconfident", "anxious", "fearful", "overconfident\nand fearful", "equal mix\nof the four"]
+    arrs = ["own judgement", "act or give up at once", "A: may continue", "B: may continue + protection",
+            "C: required checks", "D: required checks + protection"]
+    short = ["own judgement", "act or give up\nat once", "A may continue", "B A + protection", "C required checks", "D C + protection"]
+    cols = [INK2, "#9a9891", BLUE, "#7fb3ea", ORANGE, "#f2a67a"]
+    fig, ax = plt.subplots(figsize=(9.0, 3.6))
+    w = 0.13
+    for j, (a, s, c) in enumerate(zip(arrs, short, cols)):
+        ys = [[r["payoff"] for r in rows if r["person"] == pr and r["arrangement"] == a][0] for pr in persons]
+        ax.bar(np.arange(len(persons)) + (j - 2.5) * w, ys, width=w, color=c, label=s.replace("\n", " "))
+    ax.axhline(0, color=INK2, lw=0.8)
+    ax.set_xticks(np.arange(len(persons))); ax.set_xticklabels(labels, fontsize=8)
+    ax.set_ylabel("average payoff (success pays 20)")
+    ax.set_ylim(-0.6, 5.0)
+    ax.legend(frameon=False, fontsize=7.5, ncol=3, loc="upper center", bbox_to_anchor=(0.5, -0.16))
+    ax.set_title("after an overconfident agent (γ = 4) hands over: six arrangements", fontsize=9, loc="left")
+    fig.tight_layout()
+    save(fig, "supp_S5_handoff")
+
+
 if __name__ == "__main__":
-    s1_stakes(); s2_p(); s3_theta(); s4_pressure()
+    s1_stakes(); s2_p(); s3_theta(); s4_pressure(); s5_handoff()
     for old in ("supp_sA.png", "supp_sB.png", "supp_sD.png", "supp_sF.png"):
         p = os.path.join(FIGS, old)
         if os.path.exists(p):

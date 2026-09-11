@@ -222,3 +222,63 @@ def test_blind_wait_charges_the_interval_and_changes_no_first_decision():
     # same observations in the same order, so the same decisions, two steps later
     assert abs(r.avoidable - own.avoidable) < 1e-9 and abs(r.missed - own.missed) < 2e-3
     assert abs((own.payoff - r.payoff) - 2 * (-iv.C)) < 0.05
+
+
+# ---------------------------------------------------------------- hand-off arrangements (Table 4)
+def test_act_from_one_is_the_unconstrained_policy():
+    a = iv.dp_thresholds(1.0, 0.0, 0.0, iv.SIGMA, r_ok=iv.R_OK, r_bad=iv.R_BAD, c=iv.C, horizon=iv.H, q=iv.Q)
+    b = iv.dp_thresholds(1.0, 0.0, 0.0, iv.SIGMA, r_ok=iv.R_OK, r_bad=iv.R_BAD, c=iv.C, horizon=iv.H, q=iv.Q, act_from=1)
+    assert np.array_equal(a[0], b[0]) and np.array_equal(a[1], b[1])
+
+
+def test_blocked_policy_forbids_acting_before_act_from_and_is_unchanged_after():
+    """Acting is impossible before act_from; from act_from on the future is unconstrained,
+    so the thresholds coincide with the unconstrained policy there."""
+    for P in iv.PEOPLE:
+        up0, lo0 = iv.thresholds_for(P)
+        for T in (3, 8):
+            up, lo = iv.thresholds_for(P, act_from=T)
+            assert np.isinf(up[1:T]).all()
+            assert np.allclose(up[T:iv.H + 1], up0[T:iv.H + 1]) and np.allclose(lo[T:iv.H + 1], lo0[T:iv.H + 1])
+            # giving up stays possible and is at least as attractive while acting is blocked
+            assert (lo[1:T] >= lo0[1:T] - 1e-9).all()
+
+
+def test_handoff_forced_equals_agent_timed_prompt():
+    for P in iv.PEOPLE:
+        a = iv.simulate_handoff(P, agent_gamma=4.0, mode="forced", n=3000, seed=5)
+        b = iv.simulate_prompt(P, agent_gamma=4.0, n=3000, seed=5)
+        assert a.payoff == b.payoff and a.avoidable == b.avoidable and a.missed == b.missed
+        assert a.checks_after == 0.0
+
+
+def test_handoff_continue_reproduces_own_judgement_when_agent_stops_no_later():
+    """A person allowed to continue by their own policy from the hand-off state ends where
+    own judgement would, exactly, whenever the agent stops no later than they would have:
+    the calibrated person (the gamma=4 agent stops earlier) and the overconfident person
+    (the agent is their own rule)."""
+    for P in (iv.CALIBRATED, iv.OVERCONFIDENT):
+        own = iv.simulate(P, "none", n=3000, seed=5)
+        a = iv.simulate_handoff(P, agent_gamma=4.0, mode="continue", n=3000, seed=5)
+        assert a.payoff == own.payoff and a.avoidable == own.avoidable and a.missed == own.missed
+
+
+def test_handoff_required_k0_equals_continue_and_relief_zero_is_neutral():
+    for P in iv.PEOPLE:
+        a = iv.simulate_handoff(P, agent_gamma=4.0, mode="continue", theta=0.0, n=3000, seed=5)
+        b = iv.simulate_handoff(P, agent_gamma=4.0, mode="required", k_required=0, theta=0.0, n=3000, seed=5)
+        assert a.payoff == b.payoff and a.avoidable == b.avoidable and a.missed == b.missed
+    for P in (iv.CALIBRATED, iv.OVERCONFIDENT):   # no extra costs, so relief cannot matter
+        a = iv.simulate_handoff(P, agent_gamma=4.0, mode="required", k_required=2, theta=0.0, n=3000, seed=5)
+        b = iv.simulate_handoff(P, agent_gamma=4.0, mode="required", k_required=2, theta=0.7, n=3000, seed=5)
+        assert a.payoff == b.payoff and a.avoidable == b.avoidable
+
+
+def test_required_checks_help_the_overconfident_and_leave_giving_up_open():
+    """Two required checks before acting cut the overconfident person's avoidable
+    catastrophes and raise their payoff; because giving up stays open, their missed
+    opportunities do not fall."""
+    a = iv.simulate_handoff(iv.OVERCONFIDENT, agent_gamma=4.0, mode="continue", n=20000, seed=5)
+    c = iv.simulate_handoff(iv.OVERCONFIDENT, agent_gamma=4.0, mode="required", k_required=2, n=20000, seed=5)
+    assert c.avoidable < 0.5 * a.avoidable and c.payoff > a.payoff + 1.0
+    assert c.missed >= a.missed - 0.005

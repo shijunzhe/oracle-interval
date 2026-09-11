@@ -339,6 +339,53 @@ def table1(p=0.25, suffix=""):
             print(f"  C={c:+.1f} {col:>14}: payoff {r['payoff']:+6.2f}  avoidable {100*r['avoidable']:5.2f}%  missed {100*r['missed']:5.1f}%")
 
 
+
+MIXED = iv.Person(gamma=iv.GAMMA_OVER, r_blame=iv.R_BLAME, label="overconfident and fearful")
+HANDOFF_PEOPLE = tuple(iv.PEOPLE) + (MIXED,)
+
+
+def table4(agent_gamma=None, k=2, theta=None, seed=31):
+    """Table 4 (main text): what the person can do after an agent hands over.  The agent
+    (gamma = iv.AGENT_GAMMA) collects evidence until its own policy would act or give up;
+    the person then continues with the same evidence under six arrangements:
+      own judgement (reference; the agent plays no part),
+      act or give up at once (Table 3's agent-timed decision),
+      A: may pay for further checks, own policy;  B: A + protection both ways (theta),
+      C: an irreversible action needs k further checks, giving up open at any time;
+      D: C + protection both ways.
+    Five persons (the four of Table 1 and the overconfident-and-fearful person) and the
+    equal mix of the four.  Common random streams (seed 31, as Table 3)."""
+    agent_gamma = iv.AGENT_GAMMA if agent_gamma is None else agent_gamma
+    theta = iv.THETA if theta is None else theta
+    rows = []; cells = {}
+    for P in HANDOFF_PEOPLE:
+        cells[(P.label, "own judgement")] = iv.simulate(P, "none", n=N, seed=seed)
+        cells[(P.label, "act or give up at once")] = iv.simulate_handoff(P, agent_gamma, "forced", n=N, seed=seed)
+        cells[(P.label, "A: may continue")] = iv.simulate_handoff(P, agent_gamma, "continue", theta=0.0, n=N, seed=seed)
+        cells[(P.label, "B: may continue + protection")] = iv.simulate_handoff(P, agent_gamma, "continue", theta=theta, n=N, seed=seed)
+        cells[(P.label, "C: required checks")] = iv.simulate_handoff(P, agent_gamma, "required", k_required=k, theta=0.0, n=N, seed=seed)
+        cells[(P.label, "D: required checks + protection")] = iv.simulate_handoff(P, agent_gamma, "required", k_required=k, theta=theta, n=N, seed=seed)
+    cols = ["own judgement", "act or give up at once", "A: may continue", "B: may continue + protection",
+            "C: required checks", "D: required checks + protection"]
+    for col in cols:
+        for P in HANDOFF_PEOPLE:
+            r = cells[(P.label, col)]
+            rows.append(dict(agent_gamma=agent_gamma, k=k, theta=theta, person=P.label, arrangement=col,
+                             payoff=r.payoff, avoidable=r.avoidable, missed=r.missed, wrong=r.wrong,
+                             steps=r.steps, checks_after=getattr(r, "checks_after", 0.0)))
+        rs = [cells[(P.label, col)] for P in iv.PEOPLE]
+        rows.append(dict(agent_gamma=agent_gamma, k=k, theta=theta, person="population (equal mix)", arrangement=col,
+                         payoff=float(np.mean([r.payoff for r in rs])), avoidable=float(np.mean([r.avoidable for r in rs])),
+                         missed=float(np.mean([r.missed for r in rs])), wrong=float(np.mean([r.wrong for r in rs])),
+                         steps=float(np.mean([r.steps for r in rs])),
+                         checks_after=float(np.mean([getattr(r, "checks_after", 0.0) for r in rs]))))
+    write_csv(os.path.join(RES, "table4_handoff.csv"), rows)
+    print(f"table4 (agent γ={agent_gamma:g}, k={k}, θ={theta}):")
+    for col in cols:
+        r = [x for x in rows if x["person"].startswith("population") and x["arrangement"] == col][0]
+        print(f"  {col:32s}: payoff {r['payoff']:+5.2f}  avoidable {100*r['avoidable']:5.2f}%  missed {100*r['missed']:5.1f}%  checks after {r['checks_after']:.2f}")
+    return rows
+
 if __name__ == "__main__":
-    fig1(); fig2(); fig3(); table1(); table1(p=0.5, suffix="_p05")
+    fig1(); fig2(); fig3(); table1(); table1(p=0.5, suffix="_p05"); table4()
     print("done ->", FIGS)

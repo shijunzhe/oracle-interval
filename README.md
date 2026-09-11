@@ -11,7 +11,7 @@ pip install -r requirements.txt
 bash reproduce.sh
 ```
 
-`reproduce.sh` runs the tests, the main-text simulations (Figures 1 to 3 and Table 2), the supplementary simulations (Figures S1 to S4 and Tables S1 to S9), and then redraws all figures. With the default of 100,000 decisions per setting (60,000 for the supplementary sweeps) it takes under a minute on a laptop. All random draws use fixed seeds, so the tables in `results/` are regenerated exactly.
+`reproduce.sh` runs the tests, the main-text simulations (Figures 1 to 3 and Tables 3 and 4), the supplementary simulations (Figures S1 to S4 and Tables S1 to S10), and then redraws all figures. With the default of 100,000 decisions per setting (60,000 for the supplementary sweeps) it takes under a minute on a laptop. All random draws use fixed seeds, so the tables in `results/` are regenerated exactly.
 
 For a quick check, `python3 code/interval.py` runs the model alone with 40,000 decisions per setting in a few seconds.
 
@@ -20,11 +20,11 @@ For a quick check, `python3 code/interval.py` runs the model alone with 40,000 d
 | Path | Contents |
 |---|---|
 | `code/interval.py` | The model: world, four people, devices, dynamic programming, simulation. The docstring at the top explains it in one page. |
-| `code/test_interval.py` | Twenty-four tests of the model's stated properties (for example: the empty verdict changes nothing; full relief brings a person to the calibrated rate and no further; a verdict read as evidence erodes the relief; a mirror read as evidence raises avoidable catastrophes). |
+| `code/test_interval.py` | Thirty tests of the model's stated properties (for example: the empty verdict changes nothing; full relief brings a person to the calibrated rate and no further; a verdict read as evidence erodes the relief; a mirror read as evidence raises avoidable catastrophes). |
 | `code/make_figs.py` | Simulations behind Figure 1 (one trajectory), Figure 2 (imposed waiting), Figure 3 (one draw, two directions) and Table 3 (the whole procedure, the agent-timed prompt and the single-observation limit). Writes `results/`. |
 | `code/make_supp.py` | Simulations behind the Supplementary Information: stakes sweep, verdict-probability sweep, θ curve, pressure strength, the self-imposed rule, subjective costs, the verdict read as evidence, the mirror verdict, two faults in one person, robustness. Writes `results/`. |
 | `code/plot_figs.py`, `code/plot_supp.py` | Redraw all figures from `results/*.csv` without rerunning the simulations. Write `figs/` (300 dpi PNG and vector PDF). |
-| `results/` | One CSV per figure or table. `table1.csv` is the paper's Table 3 (the paper's Table 1 is the list of persons and Table 2 the parameters and their sources); `table1_paired.csv` holds the per-decision 95% intervals of its population cells and the paired differences against own judgement. Seeds: Fig. 1 rng(3); Fig. 2 seed 11; Fig. 3 seed 23; Table 3 seed 31; S-A 41, S-B 43, S-W 45, S-D 47, S-E 49, S-F 51, S-G/S-H/S-M/S-N 23, S-P 31, robustness 53. |
+| `results/` | One CSV per figure or table. `table1.csv` is the paper's Table 3 (the paper's Table 1 is the list of persons and Table 2 the parameters and their sources); `table1_paired.csv` holds the per-decision 95% intervals of its population cells and the paired differences against own judgement. Seeds: Fig. 1 rng(3); Fig. 2 seed 11; Fig. 3 seed 23; Table 3 seed 31; S-A 41, S-B 43, S-W 45, S-D 47, S-E 49, S-F 51, S-G/S-H/S-M/S-N 23, S-P 31, Table 4 and S-R 31, robustness 53. `table4_handoff.csv` is the paper's Table 4 (what the person can do after an agent hands over) and `sR_handoff.csv` its sweep (Table S10). |
 | `figs/` | The figures as they appear in the paper. |
 
 ## The model in one paragraph
@@ -44,6 +44,7 @@ The world is in one of two states, good or bad, equally likely at the start. Eac
 | A verdict that predicts the person, read as evidence, raises avoidable catastrophes to 1.1 to 1.7 times what a random verdict read the same way and saying "go" as often leaves | `results/sH_mirror.csv`, Supplementary Table S5 |
 | "Go" relief given to a person who is both overconfident (γ = 4) and afraid of blame (R_blame = 200) raises their avoidable catastrophes (3.2% to 3.7%) and lowers their payoff (1.86 to 1.52) | `results/sM_moral_hazard.csv`, Supplementary Table S6 |
 | When a well-founded action cannot fail (Q = 1), fear of blame leaves missed opportunities at the calibrated rate (1.2% against 1.2%) but still delays action; a rule-of-thumb decider (one-step lookahead) gains more from the wait than the dynamic programme does | `results/robustness.csv`, Supplementary Table S2 |
+| After an overconfident agent (γ = 4) hands over, letting the person continue by their own policy (A) restores own judgement exactly for the calibrated and overconfident persons and gives the anxious and fearful persons the evidence the agent's longer search collected (group payoff 0.95 → 3.43 against own 3.26); two required checks before an irreversible action, with giving up open at any time (C), move only the acting-too-soon faults (overconfident 0.93 → 3.50, avoidable 4.5% → 1.2%; overconfident-and-fearful 1.71 → 3.62) at a cost of 0.05 to the calibrated person and leave missed opportunities where they were; protection both ways (B) moves only the giving-up faults (anxious 3.73 → 4.56, fearful 3.69 → 4.68) and lowers the mixed person's payoff; both together (D) give the group 4.32, avoidable 0.44%, missed 4.0% | `results/table4_handoff.csv`, `results/sR_handoff.csv`, Table 4, Table S10, Supplementary Fig. S5 |
 | Two controls: an imposed wait in which no observation arrives changes no error rate and costs the two steps (payoff about 1.0 lower for everyone); protection of both action and inaction, given to everyone with no draw and with the same two-step interval, matches the procedure's payoff for the calibrated and overconfident and beats it for the anxious (4.43 against 4.36) and the fearful (4.51 against 4.22) | `results/sN_controls.csv`, Supplementary Table S8 |
 
 ## Requirements
