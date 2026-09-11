@@ -84,20 +84,21 @@ def s4_pressure():
 
 
 def s5_handoff():
-    """Supplementary Fig. S5: what the person can do after the agent hands over (Table 4),
-    payoff by arrangement for the five persons and the equal mix of the four."""
-    rows = read("table4_handoff.csv")
-    persons = ["calibrated", "overconfident", "anxious", "fearful", "overconfident and fearful", "population (equal mix)"]
+    """Supplementary Fig. S5: what the person can do after the agent hands over (Table 4 and
+    Table S10 at the agent's gamma of 4), payoff by arrangement for the five persons and the
+    equal mix of the four."""
+    rows = [r for r in read("sS10_handoff_persons.csv") if abs(r["agent_gamma"] - 4.0) < 1e-9]
+    persons = ["calibrated", "overconfident", "anxious", "fearful", "overconfident and fearful", "equal mix of the four"]
     labels = ["calibrated", "overconfident", "anxious", "fearful", "overconfident\nand fearful", "equal mix\nof the four"]
-    arrs = ["own judgement", "act or give up at once", "A: may continue", "B: may continue + protection",
-            "C: required checks", "D: required checks + protection"]
-    short = ["own judgement", "act or give up\nat once", "A may continue", "B A + protection", "C required checks", "D C + protection"]
+    arrs = ["own judgement", "decide at hand-off", "A: may continue", "B: may continue + relief",
+            "C: required checks", "D: required checks + relief"]
+    short = ["own judgement", "decide at hand-off", "A may continue", "B A + relief", "C required checks", "D C + relief"]
     cols = [INK2, "#9a9891", BLUE, "#7fb3ea", ORANGE, "#f2a67a"]
     fig, ax = plt.subplots(figsize=(9.0, 3.6))
     w = 0.13
     for j, (a, s, c) in enumerate(zip(arrs, short, cols)):
         ys = [[r["payoff"] for r in rows if r["person"] == pr and r["arrangement"] == a][0] for pr in persons]
-        ax.bar(np.arange(len(persons)) + (j - 2.5) * w, ys, width=w, color=c, label=s.replace("\n", " "))
+        ax.bar(np.arange(len(persons)) + (j - 2.5) * w, ys, width=w, color=c, label=s)
     ax.axhline(0, color=INK2, lw=0.8)
     ax.set_xticks(np.arange(len(persons))); ax.set_xticklabels(labels, fontsize=8)
     ax.set_ylabel("average payoff (success pays 20)")
@@ -114,4 +115,4 @@ if __name__ == "__main__":
         p = os.path.join(FIGS, old)
         if os.path.exists(p):
             os.remove(p)
-    print("supplementary figures drawn: S1–S4")
+    print("supplementary figures drawn: S1–S5")

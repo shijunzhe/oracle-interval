@@ -1,0 +1,41 @@
+config,person,own_payoff,own_avoidable,own_missed,procedure_payoff,procedure_avoidable,procedure_missed
+"baseline: 2401 points, 31 nodes",calibrated,4.698345,0.00237,0.01795,4.51629,0.00207,0.01127
+"baseline: 2401 points, 31 nodes",overconfident,0.93015,0.04501,0.07254,2.819755,0.02231,0.03093
+"baseline: 2401 points, 31 nodes",anxious,3.731815,0.00766,0.10798,4.33546,0.00424,0.0262
+"baseline: 2401 points, 31 nodes",fearful,3.689045,0.00052,0.1388,4.221475,0.00087,0.04478
+"baseline: 2401 points, 31 nodes","overconfident, Fig. 2 k=0",1.044425,0.04465,0.07253,,,
+"baseline: 2401 points, 31 nodes","overconfident, Fig. 2 k=2",3.008305,0.02142,0.03127,,,
+"baseline: 2401 points, 31 nodes","overconfident, Fig. 2 k=3",3.281415,0.01486,0.02114,,,
+"baseline: 2401 points, 31 nodes","overconfident, Table 4 C (gamma_a = 4)",3.503775,0.01149,0.07849,,,
+"4801 points, 31 nodes",calibrated,4.69359,0.00244,0.01814,4.513805,0.00212,0.01133
+"4801 points, 31 nodes",overconfident,0.93015,0.04501,0.07254,2.819755,0.02231,0.03093
+"4801 points, 31 nodes",anxious,3.724415,0.00763,0.10902,4.334125,0.00424,0.02638
+"4801 points, 31 nodes",fearful,3.68891,0.00052,0.13881,4.22133,0.00087,0.0448
+"4801 points, 31 nodes","overconfident, Fig. 2 k=0",1.044425,0.04465,0.07253,,,
+"4801 points, 31 nodes","overconfident, Fig. 2 k=2",3.008305,0.02142,0.03127,,,
+"4801 points, 31 nodes","overconfident, Fig. 2 k=3",3.281415,0.01486,0.02114,,,
+"4801 points, 31 nodes","overconfident, Table 4 C (gamma_a = 4)",3.503775,0.01149,0.07849,,,
+"9601 points, 31 nodes",calibrated,4.693475,0.00244,0.01816,4.513735,0.00212,0.01135
+"9601 points, 31 nodes",overconfident,0.92989,0.045,0.07262,2.81945,0.02231,0.03095
+"9601 points, 31 nodes",anxious,3.724415,0.00763,0.10902,4.333685,0.00424,0.02649
+"9601 points, 31 nodes",fearful,3.68369,0.00052,0.13933,4.22079,0.00087,0.04495
+"9601 points, 31 nodes","overconfident, Fig. 2 k=0",1.042765,0.04465,0.07263,,,
+"9601 points, 31 nodes","overconfident, Fig. 2 k=2",3.007025,0.02142,0.03134,,,
+"9601 points, 31 nodes","overconfident, Fig. 2 k=3",3.280845,0.01486,0.02117,,,
+"9601 points, 31 nodes","overconfident, Table 4 C (gamma_a = 4)",3.502645,0.01149,0.07857,,,
+"2401 points, 15 nodes",calibrated,4.692185,0.00253,0.01871,4.510485,0.0022,0.01158
+"2401 points, 15 nodes",overconfident,0.930755,0.04498,0.07284,2.819095,0.0223,0.03103
+"2401 points, 15 nodes",anxious,3.69829,0.00782,0.11031,4.32837,0.0043,0.02698
+"2401 points, 15 nodes",fearful,3.672385,0.00051,0.1409,4.219645,0.00086,0.04547
+"2401 points, 15 nodes","overconfident, Fig. 2 k=0",1.045005,0.04462,0.07289,,,
+"2401 points, 15 nodes","overconfident, Fig. 2 k=2",3.010665,0.02138,0.03143,,,
+"2401 points, 15 nodes","overconfident, Fig. 2 k=3",3.281835,0.01485,0.02124,,,
+"2401 points, 15 nodes","overconfident, Table 4 C (gamma_a = 4)",3.501665,0.01149,0.0788,,,
+"2401 points, 61 nodes",calibrated,4.692935,0.00246,0.01836,4.513595,0.00213,0.01139
+"2401 points, 61 nodes",overconfident,0.93015,0.04501,0.07254,2.819755,0.02231,0.03093
+"2401 points, 61 nodes",anxious,3.731815,0.00766,0.10798,4.33558,0.00424,0.02646
+"2401 points, 61 nodes",fearful,3.666545,0.0005,0.1409,4.21348,0.00086,0.04544
+"2401 points, 61 nodes","overconfident, Fig. 2 k=0",1.044425,0.04465,0.07253,,,
+"2401 points, 61 nodes","overconfident, Fig. 2 k=2",3.008305,0.02142,0.03127,,,
+"2401 points, 61 nodes","overconfident, Fig. 2 k=3",3.281415,0.01486,0.02114,,,
+"2401 points, 61 nodes","overconfident, Table 4 C (gamma_a = 4)",3.503775,0.01149,0.07849,,,

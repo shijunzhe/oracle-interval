@@ -1,0 +1,211 @@
+agent_gamma,person,arrangement,payoff,avoidable,missed,checks_after
+1.0,calibrated,own judgement,4.698345,0.00237,0.01795,0.0
+1.0,calibrated,decide at hand-off,4.698545,0.00237,0.01794,0.0
+1.0,calibrated,A: may continue,4.698345,0.00237,0.01795,0.0
+1.0,calibrated,B: may continue + relief,4.698345,0.00237,0.01795,0.0
+1.0,calibrated,C: required checks,4.342215,0.0007,0.01818,1.03466
+1.0,calibrated,D: required checks + relief,4.342215,0.0007,0.01818,1.03466
+1.0,overconfident,own judgement,0.93015,0.04501,0.07254,0.0
+1.0,overconfident,decide at hand-off,4.697545,0.00238,0.01794,0.0
+1.0,overconfident,A: may continue,4.697545,0.00238,0.01794,0.0
+1.0,overconfident,B: may continue + relief,4.697545,0.00238,0.01794,0.0
+1.0,overconfident,C: required checks,4.262795,0.00179,0.01824,0.9755
+1.0,overconfident,D: required checks + relief,4.262795,0.00179,0.01824,0.9755
+1.0,anxious,own judgement,3.731815,0.00766,0.10798,0.0
+1.0,anxious,decide at hand-off,4.698545,0.00237,0.01794,0.0
+1.0,anxious,A: may continue,4.698345,0.00237,0.01795,0.0
+1.0,anxious,B: may continue + relief,4.698345,0.00237,0.01795,0.0
+1.0,anxious,C: required checks,4.319255,0.00115,0.01844,0.98738
+1.0,anxious,D: required checks + relief,4.33938,0.00086,0.01822,1.00673
+1.0,fearful,own judgement,3.689045,0.00052,0.1388,0.0
+1.0,fearful,decide at hand-off,4.697145,0.00237,0.01801,0.0
+1.0,fearful,A: may continue,4.63504,0.00077,0.01855,0.42741
+1.0,fearful,B: may continue + relief,4.69201,0.0015,0.01802,0.18147
+1.0,fearful,C: required checks,4.329355,0.00041,0.01883,1.10918
+1.0,fearful,D: required checks + relief,4.341835,0.00056,0.01823,1.06142
+1.0,overconfident and fearful,own judgement,1.705915,0.03304,0.09868,0.0
+1.0,overconfident and fearful,decide at hand-off,4.698545,0.00237,0.01794,0.0
+1.0,overconfident and fearful,A: may continue,4.698545,0.00237,0.01794,0.0
+1.0,overconfident and fearful,B: may continue + relief,4.697545,0.00238,0.01794,0.0
+1.0,overconfident and fearful,C: required checks,4.2716,0.0017,0.0183,0.97589
+1.0,overconfident and fearful,D: required checks + relief,4.26766,0.00174,0.01824,0.97577
+1.0,follower (agent's own policy),own judgement,4.698345,0.00237,0.01795,0.0
+1.0,follower (agent's own policy),decide at hand-off,4.698545,0.00237,0.01794,0.0
+1.0,follower (agent's own policy),A: may continue,4.698545,0.00237,0.01794,0.0
+1.0,follower (agent's own policy),B: may continue + relief,4.698545,0.00237,0.01794,0.0
+1.0,follower (agent's own policy),C: required checks,4.342215,0.0007,0.01818,1.03466
+1.0,follower (agent's own policy),D: required checks + relief,4.342215,0.0007,0.01818,1.03466
+1.0,equal mix of the four,own judgement,3.26233875,0.01389,0.08431749999999999,0.0
+1.0,equal mix of the four,decide at hand-off,4.697945,0.0023725,0.0179575,0.0
+1.0,equal mix of the four,A: may continue,4.68231875,0.0019725,0.0180975,0.1068525
+1.0,equal mix of the four,B: may continue + relief,4.69656125,0.002155,0.017965,0.0453675
+1.0,equal mix of the four,C: required checks,4.313405,0.0010125,0.0184225,1.02668
+1.0,equal mix of the four,D: required checks + relief,4.32155625,0.0009775,0.0182175,1.0195775
+1.5,calibrated,own judgement,4.698345,0.00237,0.01795,0.0
+1.5,calibrated,decide at hand-off,4.351795,0.00858,0.03186,0.0
+1.5,calibrated,A: may continue,4.698345,0.00237,0.01795,0.8533
+1.5,calibrated,B: may continue + relief,4.698345,0.00237,0.01795,0.8533
+1.5,calibrated,C: required checks,4.51906,0.00116,0.01802,1.44867
+1.5,calibrated,D: required checks + relief,4.51906,0.00116,0.01802,1.44867
+1.5,overconfident,own judgement,0.93015,0.04501,0.07254,0.0
+1.5,overconfident,decide at hand-off,4.350795,0.00859,0.03186,0.0
+1.5,overconfident,A: may continue,4.350795,0.00859,0.03186,0.0
+1.5,overconfident,B: may continue + relief,4.350795,0.00859,0.03186,0.0
+1.5,overconfident,C: required checks,4.228595,0.00473,0.03255,0.9672
+1.5,overconfident,D: required checks + relief,4.228595,0.00473,0.03255,0.9672
+1.5,anxious,own judgement,3.731815,0.00766,0.10798,0.0
+1.5,anxious,decide at hand-off,4.351795,0.00858,0.03186,0.0
+1.5,anxious,A: may continue,4.351795,0.00858,0.03186,0.0
+1.5,anxious,B: may continue + relief,4.612145,0.00426,0.03219,0.2797
+1.5,anxious,C: required checks,4.41082,0.0024,0.03358,1.01075
+1.5,anxious,D: required checks + relief,4.471195,0.00159,0.03247,1.07
+1.5,fearful,own judgement,3.689045,0.00052,0.1388,0.0
+1.5,fearful,decide at hand-off,1.556395,0.00164,0.27653,0.0
+1.5,fearful,A: may continue,4.590485,0.00074,0.03474,0.93702
+1.5,fearful,B: may continue + relief,4.68103,0.00145,0.02515,0.85833
+1.5,fearful,C: required checks,4.43464,0.00059,0.03484,1.27711
+1.5,fearful,D: required checks + relief,4.50473,0.00081,0.0252,1.33693
+1.5,overconfident and fearful,own judgement,1.705915,0.03304,0.09868,0.0
+1.5,overconfident and fearful,decide at hand-off,4.351795,0.00858,0.03186,0.0
+1.5,overconfident and fearful,A: may continue,4.351795,0.00858,0.03186,0.0
+1.5,overconfident and fearful,B: may continue + relief,4.350795,0.00859,0.03186,0.0
+1.5,overconfident and fearful,C: required checks,4.257525,0.00435,0.03291,0.96854
+1.5,overconfident and fearful,D: required checks + relief,4.243485,0.00453,0.03266,0.96822
+1.5,follower (agent's own policy),own judgement,4.351795,0.00858,0.03186,0.0
+1.5,follower (agent's own policy),decide at hand-off,4.351795,0.00858,0.03186,0.0
+1.5,follower (agent's own policy),A: may continue,4.351795,0.00858,0.03186,0.0
+1.5,follower (agent's own policy),B: may continue + relief,4.351795,0.00858,0.03186,0.0
+1.5,follower (agent's own policy),C: required checks,4.41989,0.00238,0.0323,1.02621
+1.5,follower (agent's own policy),D: required checks + relief,4.41989,0.00238,0.0323,1.02621
+1.5,equal mix of the four,own judgement,3.26233875,0.01389,0.08431749999999999,0.0
+1.5,equal mix of the four,decide at hand-off,3.652695,0.0068475,0.0930275,0.0
+1.5,equal mix of the four,A: may continue,4.497855,0.00507,0.0291025,0.44758
+1.5,equal mix of the four,B: may continue + relief,4.58557875,0.0041675,0.0267875,0.4978325
+1.5,equal mix of the four,C: required checks,4.39827875,0.00222,0.0297475,1.1759325
+1.5,equal mix of the four,D: required checks + relief,4.430895,0.0020725,0.02706,1.2057
+2.0,calibrated,own judgement,4.698345,0.00237,0.01795,0.0
+2.0,calibrated,decide at hand-off,3.642355,0.01667,0.0446,0.0
+2.0,calibrated,A: may continue,4.698345,0.00237,0.01795,1.33162
+2.0,calibrated,B: may continue + relief,4.698345,0.00237,0.01795,1.33162
+2.0,calibrated,C: required checks,4.58085,0.00148,0.01801,1.73981
+2.0,calibrated,D: required checks + relief,4.58085,0.00148,0.01801,1.73981
+2.0,overconfident,own judgement,0.93015,0.04501,0.07254,0.0
+2.0,overconfident,decide at hand-off,3.642355,0.01667,0.0446,0.0
+2.0,overconfident,A: may continue,3.642355,0.01667,0.0446,0.0
+2.0,overconfident,B: may continue + relief,3.642355,0.01667,0.0446,0.0
+2.0,overconfident,C: required checks,4.04215,0.00704,0.04644,0.96881
+2.0,overconfident,D: required checks + relief,4.04215,0.00704,0.04644,0.96881
+2.0,anxious,own judgement,3.731815,0.00766,0.10798,0.0
+2.0,anxious,decide at hand-off,3.642355,0.01667,0.0446,0.0
+2.0,anxious,A: may continue,4.219655,0.00884,0.0469,0.2546
+2.0,anxious,B: may continue + relief,4.557105,0.00418,0.04014,0.6381
+2.0,anxious,C: required checks,4.356815,0.00301,0.04857,1.04108
+2.0,anxious,D: required checks + relief,4.471325,0.00209,0.04037,1.20886
+2.0,fearful,own judgement,3.689045,0.00052,0.1388,0.0
+2.0,fearful,decide at hand-off,0.397955,0.00091,0.3863,0.0
+2.0,fearful,A: may continue,4.47763,0.00069,0.05086,1.17905
+2.0,fearful,B: may continue + relief,4.68103,0.00145,0.02515,1.33665
+2.0,fearful,C: required checks,4.380455,0.00059,0.05093,1.393
+2.0,fearful,D: required checks + relief,4.565435,0.00102,0.02519,1.65224
+2.0,overconfident and fearful,own judgement,1.705915,0.03304,0.09868,0.0
+2.0,overconfident and fearful,decide at hand-off,3.642355,0.01667,0.0446,0.0
+2.0,overconfident and fearful,A: may continue,3.642355,0.01667,0.0446,0.0
+2.0,overconfident and fearful,B: may continue + relief,3.642355,0.01667,0.0446,0.0
+2.0,overconfident and fearful,C: required checks,4.097805,0.00626,0.04752,0.9703
+2.0,overconfident and fearful,D: required checks + relief,4.071045,0.00668,0.04663,0.97062
+2.0,follower (agent's own policy),own judgement,3.642355,0.01667,0.0446,0.0
+2.0,follower (agent's own policy),decide at hand-off,3.642355,0.01667,0.0446,0.0
+2.0,follower (agent's own policy),A: may continue,3.642355,0.01667,0.0446,0.0
+2.0,follower (agent's own policy),B: may continue + relief,3.642355,0.01667,0.0446,0.0
+2.0,follower (agent's own policy),C: required checks,4.281175,0.00426,0.04576,1.01876
+2.0,follower (agent's own policy),D: required checks + relief,4.281175,0.00426,0.04576,1.01876
+2.0,equal mix of the four,own judgement,3.26233875,0.01389,0.08431749999999999,0.0
+2.0,equal mix of the four,decide at hand-off,2.831255,0.01273,0.130025,0.0
+2.0,equal mix of the four,A: may continue,4.25949625,0.0071425,0.0400775,0.6913175
+2.0,equal mix of the four,B: may continue + relief,4.39470875,0.0061675,0.03196,0.8265925000000001
+2.0,equal mix of the four,C: required checks,4.3400675,0.00303,0.0409875,1.285675
+2.0,equal mix of the four,D: required checks + relief,4.41494,0.0029075,0.0325025,1.39243
+4.0,calibrated,own judgement,4.698345,0.00237,0.01795,0.0
+4.0,calibrated,decide at hand-off,1.60255,0.01976,0.19247,0.0
+4.0,calibrated,A: may continue,4.698345,0.00237,0.01795,2.04241
+4.0,calibrated,B: may continue + relief,4.698345,0.00237,0.01795,2.04241
+4.0,calibrated,C: required checks,4.64542,0.00184,0.01797,2.25346
+4.0,calibrated,D: required checks + relief,4.64542,0.00184,0.01797,2.25346
+4.0,overconfident,own judgement,0.93015,0.04501,0.07254,0.0
+4.0,overconfident,decide at hand-off,0.93015,0.04501,0.07254,0.0
+4.0,overconfident,A: may continue,0.93015,0.04501,0.07254,0.0
+4.0,overconfident,B: may continue + relief,0.93015,0.04501,0.07254,0.0
+4.0,overconfident,C: required checks,3.503775,0.01149,0.07849,0.98995
+4.0,overconfident,D: required checks + relief,3.503775,0.01149,0.07849,0.98995
+4.0,anxious,own judgement,3.731815,0.00766,0.10798,0.0
+4.0,anxious,decide at hand-off,1.60255,0.01976,0.19247,0.0
+4.0,anxious,A: may continue,3.948345,0.00814,0.08246,0.63121
+4.0,anxious,B: may continue + relief,4.557105,0.00418,0.04014,1.34889
+4.0,anxious,C: required checks,4.0893,0.00394,0.0836,1.1101
+4.0,anxious,D: required checks + relief,4.523135,0.00286,0.04028,1.67043
+4.0,fearful,own judgement,3.689045,0.00052,0.1388,0.0
+4.0,fearful,decide at hand-off,-0.35025,0.00034,0.46839,0.0
+4.0,fearful,A: may continue,4.150345,0.00063,0.0892,1.45961
+4.0,fearful,B: may continue + relief,4.68103,0.00145,0.02515,2.04744
+4.0,fearful,C: required checks,4.10574,0.0006,0.08922,1.55402
+4.0,fearful,D: required checks + relief,4.62516,0.00124,0.02517,2.20038
+4.0,overconfident and fearful,own judgement,1.705915,0.03304,0.09868,0.0
+4.0,overconfident and fearful,decide at hand-off,0.93015,0.04501,0.07254,0.0
+4.0,overconfident and fearful,A: may continue,1.76671,0.03509,0.07501,0.09208
+4.0,overconfident and fearful,B: may continue + relief,1.331485,0.04031,0.07336,0.04213
+4.0,overconfident and fearful,C: required checks,3.622525,0.00985,0.08178,0.98725
+4.0,overconfident and fearful,D: required checks + relief,3.5565,0.0108,0.07923,0.9929
+4.0,follower (agent's own policy),own judgement,0.93015,0.04501,0.07254,0.0
+4.0,follower (agent's own policy),decide at hand-off,0.93015,0.04501,0.07254,0.0
+4.0,follower (agent's own policy),A: may continue,0.93015,0.04501,0.07254,0.0
+4.0,follower (agent's own policy),B: may continue + relief,0.93015,0.04501,0.07254,0.0
+4.0,follower (agent's own policy),C: required checks,3.503775,0.01149,0.07849,0.98995
+4.0,follower (agent's own policy),D: required checks + relief,3.503775,0.01149,0.07849,0.98995
+4.0,equal mix of the four,own judgement,3.26233875,0.01389,0.08431749999999999,0.0
+4.0,equal mix of the four,decide at hand-off,0.94625,0.0212175,0.2314675,0.0
+4.0,equal mix of the four,A: may continue,3.43179625,0.0140375,0.0655375,1.0333074999999998
+4.0,equal mix of the four,B: may continue + relief,3.7166575,0.0132525,0.038945,1.3596849999999998
+4.0,equal mix of the four,C: required checks,4.08605875,0.0044675,0.06732,1.4768824999999999
+4.0,equal mix of the four,D: required checks + relief,4.3243725,0.0043575,0.0404775,1.778555
+6.0,calibrated,own judgement,4.698345,0.00237,0.01795,0.0
+6.0,calibrated,decide at hand-off,1.17707,0.01633,0.2539,0.0
+6.0,calibrated,A: may continue,4.698345,0.00237,0.01795,2.24985
+6.0,calibrated,B: may continue + relief,4.698345,0.00237,0.01795,2.24985
+6.0,calibrated,C: required checks,4.6542,0.00195,0.01797,2.42134
+6.0,calibrated,D: required checks + relief,4.6542,0.00195,0.01797,2.42134
+6.0,overconfident,own judgement,0.93015,0.04501,0.07254,0.0
+6.0,overconfident,decide at hand-off,-0.61733,0.06104,0.08329,0.0
+6.0,overconfident,A: may continue,0.93015,0.04501,0.07254,0.20744
+6.0,overconfident,B: may continue + relief,0.93015,0.04501,0.07254,0.20744
+6.0,overconfident,C: required checks,3.332515,0.01393,0.07806,1.09071
+6.0,overconfident,D: required checks + relief,3.332515,0.01393,0.07806,1.09071
+6.0,anxious,own judgement,3.731815,0.00766,0.10798,0.0
+6.0,anxious,decide at hand-off,1.17707,0.01633,0.2539,0.0
+6.0,anxious,A: may continue,3.82364,0.0079,0.09745,0.72846
+6.0,anxious,B: may continue + relief,4.557105,0.00418,0.04014,1.55633
+6.0,anxious,C: required checks,3.955225,0.00415,0.09844,1.13489
+6.0,anxious,D: required checks + relief,4.529485,0.00307,0.04028,1.82317
+6.0,fearful,own judgement,3.689045,0.00052,0.1388,0.0
+6.0,fearful,decide at hand-off,-0.38633,0.00027,0.47873,0.0
+6.0,fearful,A: may continue,4.010515,0.00059,0.10524,1.51711
+6.0,fearful,B: may continue + relief,4.68103,0.00145,0.02515,2.25488
+6.0,fearful,C: required checks,3.97625,0.00056,0.10526,1.59084
+6.0,fearful,D: required checks + relief,4.634645,0.0013,0.02517,2.37685
+6.0,overconfident and fearful,own judgement,1.705915,0.03304,0.09868,0.0
+6.0,overconfident and fearful,decide at hand-off,0.08247,0.0486,0.11656,0.0
+6.0,overconfident and fearful,A: may continue,1.724005,0.03385,0.09011,0.20893
+6.0,overconfident and fearful,B: may continue + relief,1.33032,0.03987,0.07731,0.2251
+6.0,overconfident and fearful,C: required checks,3.426755,0.01087,0.09633,0.99703
+6.0,overconfident and fearful,D: required checks + relief,3.392405,0.01271,0.08271,1.06973
+6.0,follower (agent's own policy),own judgement,-0.61733,0.06104,0.08329,0.0
+6.0,follower (agent's own policy),decide at hand-off,-0.61733,0.06104,0.08329,0.0
+6.0,follower (agent's own policy),A: may continue,-0.61733,0.06104,0.08329,0.0
+6.0,follower (agent's own policy),B: may continue + relief,-0.61733,0.06104,0.08329,0.0
+6.0,follower (agent's own policy),C: required checks,3.046975,0.01531,0.09384,0.97059
+6.0,follower (agent's own policy),D: required checks + relief,3.046975,0.01531,0.09384,0.97059
+6.0,equal mix of the four,own judgement,3.26233875,0.01389,0.08431749999999999,0.0
+6.0,equal mix of the four,decide at hand-off,0.33762,0.0234925,0.267455,0.0
+6.0,equal mix of the four,A: may continue,3.3656625,0.0139675,0.073295,1.175715
+6.0,equal mix of the four,B: may continue + relief,3.7166575,0.0132525,0.038945,1.5671249999999999
+6.0,equal mix of the four,C: required checks,3.9795475,0.0051475,0.0749325,1.559445
+6.0,equal mix of the four,D: required checks + relief,4.28771125,0.0050625,0.04037,1.9280175

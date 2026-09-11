@@ -1,0 +1,31 @@
+agent_gamma,person,arrangement,payoff,avoidable,missed,checks_after,hw_vs_A
+1.0,equal mix of the four,own judgement,3.26233875,0.01389,0.08431749999999999,0.0,nan
+1.0,equal mix of the four,decide at hand-off,4.697945,0.0023725,0.0179575,0.0,0.0062180182665441406
+1.0,equal mix of the four,A: may continue,4.68231875,0.0019725,0.0180975,0.1068525,0.0
+1.0,equal mix of the four,B: may continue + relief,4.69656125,0.002155,0.017965,0.0453675,0.004282155890886019
+1.0,equal mix of the four,C: required checks,4.313405,0.0010125,0.0184225,1.02668,0.015285424372327492
+1.0,equal mix of the four,D: required checks + relief,4.32155625,0.0009775,0.0182175,1.0195775,0.015917800422778284
+1.5,equal mix of the four,own judgement,3.26233875,0.01389,0.08431749999999999,0.0,nan
+1.5,equal mix of the four,decide at hand-off,3.652695,0.0068475,0.0930275,0.0,0.025972382294113312
+1.5,equal mix of the four,A: may continue,4.497855,0.00507,0.0291025,0.44758,0.0
+1.5,equal mix of the four,B: may continue + relief,4.58557875,0.0041675,0.0267875,0.4978325,0.011464670497639048
+1.5,equal mix of the four,C: required checks,4.39827875,0.00222,0.0297475,1.1759325,0.02235087136891706
+1.5,equal mix of the four,D: required checks + relief,4.430895,0.0020725,0.02706,1.2057,0.02327405133037537
+2.0,equal mix of the four,own judgement,3.26233875,0.01389,0.08431749999999999,0.0,nan
+2.0,equal mix of the four,decide at hand-off,2.831255,0.01273,0.130025,0.0,0.038969057173014056
+2.0,equal mix of the four,A: may continue,4.25949625,0.0071425,0.0400775,0.6913175,0.0
+2.0,equal mix of the four,B: may continue + relief,4.39470875,0.0061675,0.03196,0.8265925000000001,0.014718025724433616
+2.0,equal mix of the four,C: required checks,4.3400675,0.00303,0.0409875,1.285675,0.02392322988787721
+2.0,equal mix of the four,D: required checks + relief,4.41494,0.0029075,0.0325025,1.39243,0.026132046503582414
+4.0,equal mix of the four,own judgement,3.26233875,0.01389,0.08431749999999999,0.0,nan
+4.0,equal mix of the four,decide at hand-off,0.94625,0.0212175,0.2314675,0.0,0.06241620982068095
+4.0,equal mix of the four,A: may continue,3.43179625,0.0140375,0.0655375,1.0333074999999998,0.0
+4.0,equal mix of the four,B: may continue + relief,3.7166575,0.0132525,0.038945,1.3596849999999998,0.022412515890167645
+4.0,equal mix of the four,C: required checks,4.08605875,0.0044675,0.06732,1.4768824999999999,0.031290119039783036
+4.0,equal mix of the four,D: required checks + relief,4.3243725,0.0043575,0.0404775,1.778555,0.036781229923361636
+6.0,equal mix of the four,own judgement,3.26233875,0.01389,0.08431749999999999,0.0,nan
+6.0,equal mix of the four,decide at hand-off,0.33762,0.0234925,0.267455,0.0,0.06956238462844042
+6.0,equal mix of the four,A: may continue,3.3656625,0.0139675,0.073295,1.175715,0.0
+6.0,equal mix of the four,B: may continue + relief,3.7166575,0.0132525,0.038945,1.5671249999999999,0.025123157698102493
+6.0,equal mix of the four,C: required checks,3.9795475,0.0051475,0.0749325,1.559445,0.029842690514014305
+6.0,equal mix of the four,D: required checks + relief,4.28771125,0.0050625,0.04037,1.9280175,0.037449445689765645

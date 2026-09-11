@@ -323,30 +323,6 @@ def robustness():
 
 
 
-def s_r():
-    """Table S10: the hand-off arrangements of Table 4 over agent gamma in {1, 4}, required
-    checks k in {1, 2, 3} and protection theta in {0, THETA}; five persons; seed 31."""
-    import make_figs as mf
-    rows = []
-    for ga in (1.0, 4.0):
-        for P in mf.HANDOFF_PEOPLE:
-            own = iv.simulate(P, "none", n=N, seed=31)
-            F = iv.simulate_handoff(P, ga, "forced", n=N, seed=31)
-            base = dict(agent_gamma=ga, person=P.label, own_payoff=own.payoff, own_avoidable=own.avoidable, own_missed=own.missed,
-                        forced_payoff=F.payoff, forced_avoidable=F.avoidable, forced_missed=F.missed)
-            for th in (0.0, iv.THETA):
-                A = iv.simulate_handoff(P, ga, "continue", theta=th, n=N, seed=31)
-                row = dict(base, theta=th, continue_payoff=A.payoff, continue_avoidable=A.avoidable, continue_missed=A.missed,
-                           continue_checks=A.checks_after)
-                for k in (1, 2, 3):
-                    R = iv.simulate_handoff(P, ga, "required", k_required=k, theta=th, n=N, seed=31)
-                    row[f"required{k}_payoff"] = R.payoff; row[f"required{k}_avoidable"] = R.avoidable
-                    row[f"required{k}_missed"] = R.missed; row[f"required{k}_checks"] = R.checks_after
-                rows.append(row)
-                print(f"S-R agent γ={ga:g} θ={th} {P.label:26s}: own {own.payoff:5.2f} forced {F.payoff:5.2f} continue {A.payoff:5.2f} "
-                      + " ".join(f"k{k} {row[f'required{k}_payoff']:5.2f}" for k in (1, 2, 3)))
-    write_csv(os.path.join(RES, "sR_handoff.csv"), rows)
-
 if __name__ == "__main__":
-    s_a(); s_b(); s_w(); s_d(); s_e(); s_f(); s_g(); s_h(); s_m(); s_n(); s_p(); s_r(); robustness()
+    s_a(); s_b(); s_w(); s_d(); s_e(); s_f(); s_g(); s_h(); s_m(); s_n(); s_p(); robustness()
     print("done")

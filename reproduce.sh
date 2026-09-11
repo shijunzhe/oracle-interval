@@ -8,5 +8,5 @@ python3 -m pytest -q test_interval.py
 python3 make_figs.py "$N"          # Figures 1-3, Table 1  ->  ../results, ../figs
 python3 make_supp.py "${2:-60000}"  # Supplementary figures and tables (60,000 per setting by default)  ->  ../results, ../figs
 python3 plot_figs.py               # redraw Figures 1-3 under the figure rules (300 dpi PNG + PDF)
-python3 plot_supp.py               # redraw Supplementary Figs S1-S4
+python3 plot_supp.py               # redraw Supplementary Figs S1-S5
 echo "done: results/ and figs/ regenerated with N=$N"
