@@ -1,0 +1,14 @@
+{
+  "title": "oracle-interval: code, results and figures for 'Waiting, judgement, and responsibility: lessons from divination for human oversight of irreversible decisions'",
+  "upload_type": "software",
+  "license": "MIT",
+  "creators": [
+    {"name": "Shi, Junzhe", "affiliation": "University of California, Berkeley"}
+  ],
+  "description": "Simulation code, result tables (CSV, one per figure or table) and figures for the article by Junzhe Shi, Yuan Gan, Shengyu Tao, Shumo Wang and Yuhan Hao. The repository contains a sequential-decision model with four decision types, an imposed wait, a random verdict and a hand-off from an AI agent; fixed random seeds and a script (reproduce.sh) regenerate every number and figure. No human-participant, survey or personal data are included.",
+  "keywords": ["human oversight", "AI agents", "divination", "sequential decision-making", "dynamic programming", "responsibility"],
+  "related_identifiers": [
+    {"identifier": "https://github.com/shijunzhe/oracle-interval", "relation": "isSupplementTo", "resource_type": "publication-article", "scheme": "url"}
+  ],
+  "access_right": "open"
+}
