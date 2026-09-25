@@ -1,10 +1,8 @@
 # oracle-interval
 
-Code, results and figures for the article *Waiting, judgement, and responsibility: lessons from divination for human oversight of irreversible decisions* (Junzhe Shi, Yuan Gan, Shengyu Tao, Shumo Wang and Yuhan Hao; submitted to *Humanities and Social Sciences Communications*, 2026).
+Code, results and figures for the article *Waiting, judgement, and responsibility: lessons from divination for human oversight of irreversible decisions.
 
 The article asks what an oracle did for a person facing a decision that could not be undone, and answers with a small model: one irreversible decision, four kinds of person, an imposed wait, a random verdict, and an AI agent that hands the decision over. This repository contains the model, the scripts that produce every number in the article and its Supplementary Information, the result tables, and the figures. There are no human-participant, survey or personal data: every data file here is a simulation output that the code regenerates from fixed random seeds.
-
-Archived version: Zenodo DOI `10.5281/zenodo.XXXXXXX` (to be minted from the v1.0.0 release; see `CITATION.cff`).
 
 ## Reproduce everything
 
